@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admins-crb
+  namespace: kube-system
+subjects:
+  - kind: Group
+    # kube_group
+    name: admins
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  # "view" is a default ClusterRole that grants read-only access to resources
+  # See: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io

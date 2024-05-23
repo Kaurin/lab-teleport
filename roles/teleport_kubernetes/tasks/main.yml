@@ -65,6 +65,19 @@
     enabled: true
     state: started
 
+- name: Drop off the CRD yaml
+  register: task_copy_crd_yaml
+  ansible.builtin.copy:
+    dest: /root/kube-crd-bind.yaml
+    src: kube-crd-bind.yaml
+    mode: "0644"
+
+- name: Create the Custom Resource Definition role binding # noqa: no-handler
+  when: task_copy_crd_yaml.changed
+  changed_when: true
+  ansible.builtin.command:
+    cmd: kubectl apply -f /root/kube-crd-bind.yaml
+
 - name: Stat kubeconfig
   register: stat_kubeconfig
   ansible.builtin.stat:
@@ -85,22 +98,16 @@
         chdir: /root
         cmd: /root/get-kubeconfig.sh
 
-    - name: Slurp kubeconfig
-      register: slurp_kubeconfig
-      ansible.builtin.slurp:
-        src: /root/kubeconfig
+- name: Slurp kubeconfig
+  register: slurp_kubeconfig
+  ansible.builtin.slurp:
+    src: /root/kubeconfig
 
-- name: Stat kube_cluster on teleport
+- name: Tasks delegated to teleport
   delegate_to: teleport
-  register: stat_kube_cluster
-  ansible.builtin.stat:
-    path: /root/kube_cluster.yaml
-
-- name: If kube_cluster.yaml does not exist
-  when: not stat_kube_cluster.stat.exists
   block:
     - name: Create kube_cluster.yaml
-      delegate_to: teleport
+      register: task_create_kube_cluster
       ansible.builtin.copy:
         dest: /root/kube_cluster.yaml
         mode: "0600"
@@ -112,8 +119,21 @@
           spec:
             kubeconfig: {{ slurp_kubeconfig.content }}
 
-    - name: Apply kube_cluster.yaml
-      delegate_to: teleport
+    - name: Apply kube_cluster.yaml # noqa: no-handler
+      when: task_create_kube_cluster.changed
       changed_when: true
       ansible.builtin.command:
         cmd: tctl create /root/kube_cluster.yaml
+
+    - name: Copy the kube-admin.yaml
+      register: task_copy_kube_admin
+      ansible.builtin.copy:
+        dest: /root/kube-admin.yaml
+        mode: "0644"
+        src: kube-admin.yaml
+
+    - name: Apply the kube-admin role # noqa: no-handler
+      when: task_copy_kube_admin.changed
+      changed_when: true
+      ansible.builtin.command:
+        cmd: tctl create -f /root/kube-admin.yaml

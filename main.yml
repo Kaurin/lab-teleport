@@ -24,4 +24,4 @@
     - name: Create admin user
       changed_when: true
       ansible.builtin.command:
-        cmd: "tctl users add teleport-admin --roles=editor,access --logins={{ lego_user_remote }}"
+        cmd: "tctl users add teleport-admin --roles=editor,access,kube-admin --logins={{ lego_user_remote }}"

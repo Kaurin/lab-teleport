@@ -1,0 +1,17 @@
+kind: role
+version: v7
+metadata:
+  name: kube-admin
+spec:
+  allow:
+    logins: ["teleport-admin"]
+    kubernetes_groups: ["admins"]
+    node_labels:
+      "*": "*"
+    kubernetes_labels:
+      "*": "*"
+    kubernetes_resources:
+      - kind: "*"
+        namespace: "*"
+        name: "*"
+        verbs: ["*"]

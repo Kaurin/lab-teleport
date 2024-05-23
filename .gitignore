@@ -201,3 +201,4 @@ cython_debug/
 # Repo-specififc
 token.txt
 group_vars
+.vscode

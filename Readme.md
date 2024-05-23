@@ -1,15 +1,24 @@
 # Teleport Lab
 
-Terraform/ansible/KVM powered Teleport lab. Batteries not included.
+The purpose of this lab environment is to give the user a starting point from which they can play around with Teleport
 
-Teleport tagline taken from [https://goteleport.com/](https://goteleport.com/)
+At the time of writing this Readme, a lot of things might be hardcoded. This is subject to change.
+
+# Overview
+
+Initially, we use terraform to stand up the following virtual machines:
+* 1 teleport (server) host `192.168.0.160`
+* 3 plain nodes `192.168.0.201` - `192.168.0.203`
+* 1 teleport kubernetes cluster/node `192.168.0.171`
+
+Once the virtual machines are provisioned, and `cloud-init` is done setting them up, we then use Ansible to bootstrap our virtual machines.
+
+# What is Teleport?
+
+Tagline taken from [https://goteleport.com/](https://goteleport.com/)
 > The easiest and most secure way to access and protect all your infrastructure
 
-Broadly speaking: launch the Teleport lab virtual machines using terraform and provision them using Ansible.
-
-* 1 teleport (server) host `192.168.0.160`
-* 3 teleport SSH nodes `192.168.0.201` - `192.168.0.203`
-* 1 teleport kubernetes node `192.168.0.171`
+Check out their website for a more detailed explanation
 
 # Requirements
 
@@ -20,9 +29,16 @@ Broadly speaking: launch the Teleport lab virtual machines using terraform and p
 * Host must have teleport installed (client only)
 * CloudFlare-hosted domain
 * CloudFlare token for your dommain available in the `token.txt` file
-* Your DNS must either be privately hosted so it intercepts/rewrites `*.{{ domain_name }}` to `192.168.0.160` OR the be on a public DNS that resolves to your private IP which has port `443` port-forwarded to `192.168.0.160`
+* Your DNS must be one of:
+  * Be privately hosted so it intercepts/rewrites `*.your-domain-name.com` to `192.168.0.160`
+  * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160`
 * Bridged network on the host with the bridge interface under the name `br0`
 * Lots of RAM to facilitate virtual machines
+  * TODO: how much ram?
+
+# Download the fedora cloud image
+
+Get the QEMU flavor from [Fedora's cloud website][fedora-cloud]
 
 # Prepare the terraform.tfvars file
 
@@ -45,6 +61,10 @@ terraform init
 terraform apply
 ```
 
+# Wait for cloud-init
+
+Wait about 30 seconds to a minute so cloud init finish provisioning. 
+
 # Sync the python (ansible) dependencies
 
 ```bash
@@ -60,6 +80,8 @@ touch group_vars/all/main.yml
 
 Edit the `group_vars/all/main.yml` file. You can find the vars that should be modified in the `hosts.ini` file.
 
+NOTE: If copying the variables from `hosts.ini`, keep in mind to change the formatting from `ini` to `yaml` style.
+
 # Run the acme-lego playbook
 
 This playbook will make the letsencrypt cert available on the local host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
@@ -68,6 +90,7 @@ This playbook will make the letsencrypt cert available on the local host. Reason
 pipenv run ansible-playbook local_acme_cert.yml -vv
 ```
 
+NOTE: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
 
 # Iterate
 
@@ -77,7 +100,7 @@ This provisions teleport and should be idempotent to run
 pipenv run ansible-playbook main.yml -vv
 ```
 
-Do things with teleport
+Do things with teleport.
 
 If things get too broken, just remove the machine(s) that are beyond repair and then
 
@@ -90,3 +113,5 @@ Followed by:
 ```bash
 pipenv run ansible-playbook main.yml -vv
 ```
+
+[fedora-cloud]: https://fedoraproject.org/cloud/download

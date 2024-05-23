@@ -1,0 +1,30 @@
+- name: Disable the tmpfs /tmp mount
+  ansible.builtin.service:
+    name: tmp.mount
+    state: stopped
+    enabled: false
+
+- name: Check if teleport exists
+  failed_when: false
+  changed_when: false
+  register: teleport_exists
+  ansible.builtin.command:
+    cmd: which teleport
+
+- name: Install teleport # noqa: command-instead-of-module
+  when: teleport_exists.rc != 0
+  changed_when: true
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl https://goteleport.com/static/install.sh | bash -s {{ teleport_version }} oss
+
+- name: Stat teleport systemd service file
+  register: teleport_systemd_service_file
+  ansible.builtin.stat:
+    path: /etc/systemd/system/teleport.service
+
+- name: Install the systemd file when needed
+  when: not teleport_systemd_service_file.stat.exists
+  changed_when: true
+  ansible.builtin.command: teleport install systemd -o /etc/systemd/system/teleport.service

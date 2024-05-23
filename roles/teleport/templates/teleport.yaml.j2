@@ -1,0 +1,31 @@
+version: v3
+teleport:
+  nodename: teleport
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+auth_service:
+  authentication:
+    second_factor: off
+  enabled: "yes"
+  listen_addr: 0.0.0.0:3025
+  cluster_name: {{ domain_name }}
+  proxy_listener_mode: multiplex
+ssh_service:
+  enabled: "yes"
+  commands:
+  - name: hostname
+    command: [hostname]
+    period: 1m0s
+proxy_service:
+  enabled: "yes"
+  web_listen_addr: 0.0.0.0:443
+  public_addr: {{ domain_name }}:443
+  https_keypairs:
+  - key_file: /etc/lego/{{ domain_name }}.key
+    cert_file: /etc/lego/{{ domain_name }}.crt
+  https_keypairs_reload_interval: 0s
+  acme: {}

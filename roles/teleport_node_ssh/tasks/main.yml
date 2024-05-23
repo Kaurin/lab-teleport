@@ -1,0 +1,39 @@
+- name: Stat the teleport config file
+  register: teleport_config
+  ansible.builtin.stat:
+    path: /etc/teleport.yaml
+
+- name: If teleport config does not exist
+  when: not teleport_config.stat.exists
+  block:
+    - name: Issue node token
+      changed_when: true
+      delegate_to: teleport
+      register: enroll_stdout
+      ansible.builtin.command:
+        cmd: tctl tokens add --type=node --format text
+
+    - name: Place token file
+      changed_when: true
+      ansible.builtin.copy:
+        dest: /etc/teleport.token
+        content: "{{ enroll_stdout.stdout }}"
+        mode: "0600"
+        owner: root
+        group: root
+
+    - name: Join node
+      changed_when: true
+      ansible.builtin.command:
+        cmd: >
+          teleport node configure
+            --output=file:///etc/teleport.yaml
+            --token=/etc/teleport.token
+            --proxy={{ domain_name }}:443
+
+- name: Start the teleport service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: teleport
+    enabled: true
+    state: started

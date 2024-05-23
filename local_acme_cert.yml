@@ -1,0 +1,46 @@
+---
+# Run this once if no certs were available before
+- name: Local setup
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+
+    - name: Install lego
+      ansible.builtin.package:
+        name: golang-github-acme-lego
+
+    - name: Create cert dir
+      ansible.builtin.file:
+        path: "{{ lego_path_local }}"
+        state: directory
+        mode: "0700"
+
+    - name: Get the cert
+      vars:
+        letsencrypt_env:
+          staging: https://acme-staging-v02.api.letsencrypt.org/directory
+          prod: https://acme-v02.api.letsencrypt.org/directory
+      changed_when: true
+      environment:
+        CLOUDFLARE_EMAIL: "{{ e_mail }}"
+        CLOUDFLARE_DNS_API_TOKEN: "{{ lookup('ansible.builtin.file', playbook_dir + '/token.txt') }}"
+      ansible.builtin.command:
+        cmd: >-
+          lego
+              --server={{ letsencrypt_env['prod'] }}
+              --email "{{ e_mail }}"
+              --dns cloudflare
+              --domains '*.{{ domain_name }}'
+              --domains '{{ domain_name }}'
+              --accept-tos
+              --path "{{ lego_path_local }}"
+              run
+
+    - name: Change cert permissions
+      ansible.builtin.file:
+        path: "{{ lego_path_local }}"
+        mode: "u=rwX,g-rwx,o-rwx"
+        recurse: true
+        state: directory
+        owner: "{{ lego_user_local }}"
+        group: "{{ lego_user_local }}"

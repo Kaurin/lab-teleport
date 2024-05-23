@@ -1,0 +1,27 @@
+---
+
+- name: Teleport host setup
+  hosts: teleport
+  roles:
+    - common
+    - teleport
+
+- name: Bootstrap teleport SSH nodes
+  hosts: ssh_nodes
+  roles:
+    - common
+    - teleport_node_ssh
+
+- name: Bootstrap the teleport kubernetes node
+  hosts: kubernetes
+  roles:
+    - common
+    - teleport_kubernetes
+
+- name: Teleport admin user
+  hosts: teleport
+  tasks:
+    - name: Create admin user
+      changed_when: true
+      ansible.builtin.command:
+        cmd: "tctl users add teleport-admin --roles=editor,access --logins={{ lego_user_remote }}"

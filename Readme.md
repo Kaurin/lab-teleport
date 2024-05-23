@@ -1,8 +1,11 @@
 # Teleport Lab
 
-Terraform/ansible/KVM powered teleport lab. Batteries not included.
+Terraform/ansible/KVM powered Teleport lab. Batteries not included.
 
-Broadly speaking: launch the lab virtual machines using terraform and provision them using Ansible.
+Teleport tagline taken from [https://goteleport.com/](https://goteleport.com/)
+> The easiest and most secure way to access and protect all your infrastructure
+
+Broadly speaking: launch the Teleport lab virtual machines using terraform and provision them using Ansible.
 
 * 1 teleport (server) host `192.168.0.160`
 * 3 teleport SSH nodes `192.168.0.201` - `192.168.0.203`
@@ -15,9 +18,11 @@ Broadly speaking: launch the lab virtual machines using terraform and provision 
 * Host must have libvirt and KVM virtualization available
 * Host must have passwordless sudo available
 * Host must have teleport installed (client only)
-* CloudFlare token available in the `token.txt` file
+* CloudFlare-hosted domain
+* CloudFlare token for your dommain available in the `token.txt` file
 * Your DNS must either be privately hosted so it intercepts/rewrites `*.{{ domain_name }}` to `192.168.0.160` OR the be on a public DNS that resolves to your private IP which has port `443` port-forwarded to `192.168.0.160`
 * Bridged network on the host with the bridge interface under the name `br0`
+* Lots of RAM to facilitate virtual machines
 
 # Prepare the terraform.tfvars file
 

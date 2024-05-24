@@ -16,10 +16,6 @@
         mode: "0700"
 
     - name: Get the cert
-      vars:
-        letsencrypt_env:
-          staging: https://acme-staging-v02.api.letsencrypt.org/directory
-          prod: https://acme-v02.api.letsencrypt.org/directory
       changed_when: true
       environment:
         CLOUDFLARE_EMAIL: "{{ e_mail }}"

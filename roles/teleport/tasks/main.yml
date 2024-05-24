@@ -9,7 +9,7 @@
   ansible.builtin.command:
     cmd: >
       lego
-          --server=https://acme-staging-v02.api.letsencrypt.org/directory
+          --server "{{ letsencrypt_env[letsencrypt_env_choice] }}"
           --email "{{ e_mail }}"
           --path "{{ lego_path_local }}"
           --dns cloudflare

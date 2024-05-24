@@ -10,7 +10,7 @@
   hosts: ssh_nodes
   roles:
     - common
-    - teleport_node_ssh
+    - teleport_node
 
 - name: Bootstrap the teleport kubernetes node
   hosts: kubernetes

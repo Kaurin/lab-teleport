@@ -90,9 +90,7 @@ mkdir -p group_vars/all
 touch group_vars/all/main.yml
 ```
 
-Edit the `group_vars/all/main.yml` file. You can find the vars that should be modified in the `hosts.ini` file.
-
-NOTE: If copying the variables from `hosts.ini`, keep in mind to change the formatting from `ini` to `yaml` style.
+Edit the `group_vars/all/main.yml` file. You can find the vars that should be overridden in the `inventory/hosts.yml` file.
 
 ### Run the acme-lego playbook (once)
 

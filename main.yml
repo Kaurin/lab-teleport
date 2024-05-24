@@ -18,6 +18,7 @@
     - common
     - k3s_install
     - teleport_kubernetes_dynamic
+    - teleport_kubernetes_crd
 
 - name: Teleport admin user
   hosts: teleport

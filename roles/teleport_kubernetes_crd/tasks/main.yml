@@ -1,0 +1,12 @@
+- name: Drop off the CRD yaml
+  register: task_copy_crd_yaml
+  ansible.builtin.copy:
+    dest: /root/kube-crd-bind.yaml
+    src: kube-crd-bind.yaml
+    mode: "0644"
+
+- name: Create the Custom Resource Definition role binding # noqa: no-handler
+  when: task_copy_crd_yaml.changed
+  changed_when: true
+  ansible.builtin.command:
+    cmd: kubectl apply -f /root/kube-crd-bind.yaml

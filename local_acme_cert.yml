@@ -27,7 +27,7 @@
       ansible.builtin.command:
         cmd: >-
           lego
-              --server={{ letsencrypt_env['prod'] }}
+              --server={{ letsencrypt_env[letsencrypt_env_choice] }}
               --email "{{ e_mail }}"
               --dns cloudflare
               --domains '*.{{ domain_name }}'

@@ -40,6 +40,12 @@ Check out their website for a more detailed explanation
 
 Get the QEMU flavor from [Fedora's cloud website][fedora-cloud]
 
+## Generate an SSH key for Ansible
+
+```bash
+ssh-keygen -f ~/.ssh/teleport_lab -t rsa -b 4096
+```
+
 ## Prepare the terraform.tfvars file
 
 Something like this
@@ -52,7 +58,9 @@ login_username = "myusername"
 EOF
 ```
 
-NOTE: The `cloud_image` parameter does not support the tilde (`~`) homedir shorthand.
+The `cloud_image` parameter does not support the tilde (`~`) homedir shorthand.
+
+`login_username` is the one that will end up provisioned on your virutal machines. Completely arbitrary. Make sure it matches the one in ansible vars later on.
 
 ## Stand up the virtual machines
 

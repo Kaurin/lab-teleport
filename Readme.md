@@ -62,24 +62,28 @@ The `cloud_image` parameter does not support the tilde (`~`) homedir shorthand.
 
 `login_username` is the one that will end up provisioned on your virutal machines. Completely arbitrary. Make sure it matches the one in ansible vars later on.
 
-## Stand up the virtual machines
+## Terraform
+
+### Stand up the virtual machines
 
 ```bash
 terraform init
 terraform apply
 ```
 
-## Wait for cloud-init
+### Wait for cloud-init
 
 Wait about 30 - 60 seconds so cloud init finish provisioning. 
 
-## Sync the python (ansible) dependencies
+## Ansible
+
+### Sync the python (ansible) dependencies
 
 ```bash
 pipenv sync
 ```
 
-## Set up Ansible variables
+### Set up Ansible variables
 
 ```bash
 mkdir -p group_vars/all
@@ -90,7 +94,7 @@ Edit the `group_vars/all/main.yml` file. You can find the vars that should be mo
 
 NOTE: If copying the variables from `hosts.ini`, keep in mind to change the formatting from `ini` to `yaml` style.
 
-## Run the acme-lego playbook (once)
+### Run the acme-lego playbook (once)
 
 This playbook will make the letsencrypt cert available on the local host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
 
@@ -100,7 +104,7 @@ pipenv run ansible-playbook local_acme_cert.yml -vv
 
 NOTE: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
 
-## Iterate
+### Iterate
 
 This provisions teleport and should be idempotent to run
 
@@ -114,6 +118,12 @@ If things get too broken, just remove the machine(s) that are beyond repair and 
 
 ```bash
 terraform apply
+```
+
+Alternatively, just re-create the whole environment
+
+```bash
+terraform destroy -auto-approve && terraform apply -auto-approve
 ```
 
 Followed by:

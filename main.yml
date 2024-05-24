@@ -17,7 +17,7 @@
   roles:
     - common
     - k3s_install
-    - teleport_kubernetes
+    - teleport_kubernetes_dynamic
 
 - name: Teleport admin user
   hosts: teleport

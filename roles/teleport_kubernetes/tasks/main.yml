@@ -1,33 +1,17 @@
-- name: Stat the k3s config file
-  register: k3s_config
+- name: Stat the token file
+  register: stat_token_file
   ansible.builtin.stat:
-    path: /etc/rancher/k3s/k3s.yaml
+    path: /etc/teleport.token
 
-- name: If teleport config does not exist
-  when: not k3s_config.stat.exists
+- name: If token file not present
+  when: not stat_token_file.stat.exists
   block:
-    - name: Install k3s # noqa: command-instead-of-module
-      changed_when: true
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          curl -sfL https://get.k3s.io | sh -
-
     - name: Issue kubernetes token
       changed_when: true
       delegate_to: teleport
       register: enroll_kube_stdout
       ansible.builtin.command:
         cmd: tctl tokens add --type=node,kube --format=text
-
-    - name: Place kube token file
-      changed_when: true
-      ansible.builtin.copy:
-        dest: /etc/teleport_kube.token
-        content: "{{ enroll_kube_stdout.stdout }}"
-        mode: "0600"
-        owner: root
-        group: root
 
     - name: Place token file
       changed_when: true
@@ -107,7 +91,7 @@
   delegate_to: teleport
   block:
     - name: Create kube_cluster.yaml
-      register: task_create_kube_cluster
+      register: task_create_kube_cluster_yaml
       ansible.builtin.copy:
         dest: /root/kube_cluster.yaml
         mode: "0600"
@@ -120,20 +104,20 @@
             kubeconfig: {{ slurp_kubeconfig.content }}
 
     - name: Apply kube_cluster.yaml # noqa: no-handler
-      when: task_create_kube_cluster.changed
+      when: task_create_kube_cluster_yaml.changed
       changed_when: true
       ansible.builtin.command:
         cmd: tctl create /root/kube_cluster.yaml
 
     - name: Copy the kube-admin.yaml
-      register: task_copy_kube_admin
+      register: task_copy_kube_admin_yaml
       ansible.builtin.copy:
         dest: /root/kube-admin.yaml
         mode: "0644"
         src: kube-admin.yaml
 
     - name: Apply the kube-admin role # noqa: no-handler
-      when: task_copy_kube_admin.changed
+      when: task_copy_kube_admin_yaml.changed
       changed_when: true
       ansible.builtin.command:
         cmd: tctl create -f /root/kube-admin.yaml

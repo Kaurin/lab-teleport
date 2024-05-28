@@ -59,7 +59,7 @@
   block:
     - name: Get the kubeconfig script
       ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/gravitational/teleport/{{ teleport_version }}/examples/k8s-auth/get-kubeconfig.sh
+        url: https://raw.githubusercontent.com/gravitational/teleport/v{{ teleport_version }}/examples/k8s-auth/get-kubeconfig.sh
         dest: /root/get-kubeconfig.sh
         mode: "0700"
 

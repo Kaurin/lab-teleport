@@ -202,3 +202,4 @@ cython_debug/
 token.txt
 group_vars
 .vscode
+ssh_config_teleport

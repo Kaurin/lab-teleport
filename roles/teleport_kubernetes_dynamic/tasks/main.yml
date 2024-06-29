@@ -96,15 +96,20 @@
       ansible.builtin.command:
         cmd: tctl create /root/kube_cluster.yaml
 
-    - name: Copy the kube-admin.yaml
-      register: task_copy_kube_admin_yaml
+    # TODO: make idempotent
+    - name: Copy the kube roles
+      loop:
+        - kube-admin.yaml
+        - kube-user.yaml
       ansible.builtin.copy:
-        dest: /root/kube-admin.yaml
+        dest: "/root/{{ item }}"
         mode: "0644"
-        src: kube-admin.yaml
+        src: "{{ item }}"
 
-    - name: Apply the kube-admin role # noqa: no-handler
-      when: task_copy_kube_admin_yaml.changed
+    - name: Apply the roles # noqa: no-handler
       changed_when: true
+      loop:
+        - kube-admin.yaml
+        - kube-user.yaml
       ansible.builtin.command:
-        cmd: tctl create -f /root/kube-admin.yaml
+        cmd: tctl create -f /root/{{ item }}

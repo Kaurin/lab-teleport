@@ -14,3 +14,20 @@ roleRef:
   # See: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: users-crb
+  namespace: default
+subjects:
+  - kind: Group
+    # name of the teleport kubernetes_group
+    name: users
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  # "view" is a default ClusterRole
+  # See: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+  name: view
+  apiGroup: rbac.authorization.k8s.io

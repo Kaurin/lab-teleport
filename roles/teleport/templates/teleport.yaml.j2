@@ -3,13 +3,12 @@ teleport:
   nodename: teleport
   data_dir: /var/lib/teleport
   log:
-    output: stderr
+    output: /var/lib/teleport/teleport.log
     severity: INFO
-    format:
-      output: text
+
 auth_service:
   authentication:
-    second_factor: off
+    second_factor: otp
   enabled: "yes"
   listen_addr: 0.0.0.0:3025
   cluster_name: {{ domain_name }}

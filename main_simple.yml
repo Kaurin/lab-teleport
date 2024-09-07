@@ -1,0 +1,34 @@
+---
+- name: Terraform run
+  hosts: localhost
+  gather_facts: false
+  become: false
+  roles:
+    - tf_simple
+
+- name: Teleport host setup
+  hosts: teleport
+  gather_facts: false
+  roles:
+    - teleport_lib
+    - common
+    - teleport
+
+- name: Bootstrap SSH nodes with Teleport Agent
+  hosts: nodes_ssh
+  gather_facts: false
+  roles:
+    - teleport_lib
+    - common
+    - teleport_node
+
+- name: Teleport admin user
+  hosts: teleport
+  gather_facts: false
+  roles:
+    - teleport_lib
+  tasks:
+    - name: Create admin user
+      changed_when: true
+      ansible.builtin.command:
+        cmd: "tctl users add teleport-admin --roles=editor,access --logins={{ user_remote }}"

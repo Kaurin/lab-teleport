@@ -1,30 +1,38 @@
 version: v3
 teleport:
-  nodename: teleport
   data_dir: /var/lib/teleport
   log:
-    output: /var/lib/teleport/teleport.log
-    severity: INFO
+    output: stderr
+    severity: DEBUG
 
 auth_service:
   authentication:
-    second_factor: otp
-  enabled: "yes"
-  listen_addr: 0.0.0.0:3025
+    # "off" is deprecated in v15 and beyond
+    # "optional" is deprecated in v16 and beyond
+    second_factor: "on"
+    webauthn:
+      rp_id: {{ domain_name }}
+  enabled: true
   cluster_name: {{ domain_name }}
+  tunnel_strategy:
+    type: proxy_peering
   proxy_listener_mode: multiplex
-ssh_service:
-  enabled: "yes"
-  commands:
-  - name: hostname
-    command: [hostname]
-    period: 1m0s
+
 proxy_service:
-  enabled: "yes"
+  enabled: true
   web_listen_addr: 0.0.0.0:443
+  peer_listen_addr: 0.0.0.0:3021
+  peer_public_addr: {{ ansible_default_ipv4.address }}:3021
   public_addr: {{ domain_name }}:443
   https_keypairs:
   - key_file: /etc/lego/{{ domain_name }}.key
     cert_file: /etc/lego/{{ domain_name }}.crt
-  https_keypairs_reload_interval: 0s
+  https_keypairs_reload_interval: 0s # Needed for static certs
   acme: {}
+
+ssh_service:
+  enabled: true
+  commands:
+  - name: hostname
+    command: [hostname]
+    period: 1m0s

@@ -1,39 +1,39 @@
-- name: Stat the teleport config file
-  register: teleport_config
+---
+- name: Stat the teleport token file
+  register: teleport_token_file
   ansible.builtin.stat:
     path: /etc/teleport.yaml
 
-- name: If teleport config does not exist
-  when: not teleport_config.stat.exists
+- name: If teleport token file does not exist
+  when: not teleport_token_file.stat.exists
   block:
+    - name: Set random token value
+      ansible.builtin.set_fact:
+        token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+
     - name: Issue node token
       changed_when: true
       delegate_to: teleport
-      register: enroll_stdout
       ansible.builtin.command:
-        cmd: tctl tokens add --type=node --format text
+        cmd: "tctl tokens add --type=node --value {{ token }}"
 
     - name: Place token file
-      changed_when: true
       ansible.builtin.copy:
         dest: /etc/teleport.token
-        content: "{{ enroll_stdout.stdout }}"
+        content: "{{ token }}"
         mode: "0600"
         owner: root
         group: root
 
     - name: Join node
       changed_when: true
+      notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:
         cmd: >
           teleport node configure
-            --output=file:///etc/teleport.yaml
-            --token=/etc/teleport.token
-            --proxy={{ domain_name }}:443
+            --output file:///etc/teleport.yaml
+            --token /etc/teleport.token
+            --proxy {{ domain_name }}:443
+            --labels hostname={{ inventory_hostname }}
 
-- name: Start the teleport service
-  ansible.builtin.systemd:
-    daemon_reload: true
-    name: teleport
-    enabled: true
-    state: started
+# TODO, use ansible `blockinfile` to add-on to the existing config if needed

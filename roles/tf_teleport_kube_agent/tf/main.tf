@@ -13,7 +13,6 @@ variable "login_username" {
   description = "Default login username for the guest virtual machines"
 }
 
-
 locals {
   user_data = {
     "packages" : ["python"]
@@ -70,13 +69,13 @@ module "teleport_lab" {
       ]
     },
     {
-      name     = "teleport-kubernetes-dynamic-1"
+      name     = "k3s-node"
       quantity = 1
       ram      = 4096
-      vcpu     = 16
+      vcpu     = 1
       meta_data = {
-        "instance-id" : "teleport-kubernetes-dynamic-1",
-        "local-hostname" : "teleport-kubernetes-dynamic-1"
+        "instance-id" : "k3s-node",
+        "local-hostname" : "k3s-node"
       }
       user_data = local.user_data
       network_configs = [

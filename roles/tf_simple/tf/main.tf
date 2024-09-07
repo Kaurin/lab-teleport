@@ -34,7 +34,7 @@ locals {
 module "teleport_lab" {
   # source = "../terraform-libvirt-lab"
   source  = "Kaurin/lab/libvirt"
-  version = "0.2.0"
+  version = "0.2.1"
 
   libvirt_pool_name = "teleport_pool"
   libvirt_pool_dir  = "/var/teleport_pool"

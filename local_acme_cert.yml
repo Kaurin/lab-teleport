@@ -4,7 +4,6 @@
   hosts: 127.0.0.1
   connection: local
   tasks:
-
     - name: Install lego
       ansible.builtin.package:
         name: golang-github-acme-lego
@@ -38,5 +37,5 @@
         mode: "u=rwX,g-rwx,o-rwx"
         recurse: true
         state: directory
-        owner: "{{ lego_user_local }}"
-        group: "{{ lego_user_local }}"
+        owner: "{{ user_local }}"
+        group: "{{ user_local }}"

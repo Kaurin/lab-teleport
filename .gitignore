@@ -1,9 +1,13 @@
 # Local .terraform directories
-**/.terraform/*
+**/.terraform
 
 # .tfstate files
 *.tfstate
 *.tfstate.*
+
+# Modules - this might be a landminde because its' sucha  common term
+**/modules
+**/.terraform.lock.hcl
 
 # Crash log files
 crash.log
@@ -203,3 +207,6 @@ token.txt
 group_vars
 .vscode
 ssh_config_teleport
+
+# Teleport license
+license.pem

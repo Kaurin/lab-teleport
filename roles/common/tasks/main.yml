@@ -1,4 +1,5 @@
 - name: Disable the tmpfs /tmp mount
+  when: ansible_facts['distribution'] == "Fedora"
   ansible.builtin.service:
     name: tmp.mount
     state: stopped
@@ -11,13 +12,24 @@
   ansible.builtin.command:
     cmd: which teleport
 
-- name: Install teleport # noqa: command-instead-of-module
+
+- name: Download the Teleport install script
+  ansible.builtin.get_url:
+    url: https://goteleport.com/static/install.sh
+    dest: /root/teleport_install.sh
+    mode: '0755'
+
+- name: Install teleport
   when: teleport_exists.rc != 0
   changed_when: true
+  register: teleport_install
+  until: "teleport_install is not failed"
+  retries: 30
+  delay: 1
   ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      curl https://goteleport.com/static/install.sh | bash -s {{ teleport_version }} oss
+    executable: /bin/bash
+    cmd: /root/teleport_install.sh {{ teleport_version }} enterprise
+
 
 - name: Stat teleport systemd service file
   register: teleport_systemd_service_file

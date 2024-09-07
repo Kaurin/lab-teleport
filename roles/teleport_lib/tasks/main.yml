@@ -1,0 +1,9 @@
+- name: End play if terraform_destroy variable is set to any value other than false
+  when: terraform_destroy | default(false)
+  ansible.builtin.meta: end_play
+
+- name: Wait 600 seconds for target connection to become reachable/usable
+  ansible.builtin.wait_for_connection:
+
+- name: Gather facts for first time
+  ansible.builtin.setup:

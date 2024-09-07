@@ -1,6 +1,12 @@
 # Teleport Lab
 
-The purpose of this lab environment is to give the user a starting point from which they can play around with Teleport.
+The purpose of this repository is to provide  the user with short lived Teleport deployment archetypes to test out various Teleport features.
+
+This is achieved by utilizing libvirt/qemu together with Terraform to stand-up virtual machines, and ansible to provision them.
+
+Ansible roles contained here could (potentially) be used like lego pieces if you are to create your own Teleport deployment playbook. For reference, see this readme and playbooks starting with `main_*`
+
+Teleport deployments created with this repository are not meant for production use.
 
 # Prerequisites
 
@@ -8,11 +14,6 @@ The purpose of this lab environment is to give the user a starting point from wh
 * Some terraform knowledge is required
 * Some ansible knowledge is required
 * General Linux system administrator knowledge
-
-# Overview
-
-TODO
-
 
 # Requirements
 
@@ -22,8 +23,8 @@ TODO
 * Host must have teleport installed for `tsh` / `tctl` use on your workstation
 * DNS and SSL
   * If this is a public lab (accessible from the internet)
-    * If Teleport is accessible from the internet use the `acme` config in your `teleport.yaml` - TODO not supported at the moment
-    * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160` (assuming home lab)
+      * Use the `acme` config in your `teleport.yaml`
+      * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160` (assuming home lab behind an internet-facing router)
   * If this is a private lab (not accessible from the internet)
     * CloudFlare hosted domain
     * CloudFlare token placed at the root of this git repository as `token.txt`.
@@ -68,6 +69,8 @@ Edit the `group_vars/all/main.yml` file. You can find the vars that should be ov
 
 ### Run the acme-lego playbook (once)
 
+Skip this part if your Teleport environment will be reachable from the internet, and set up `acme` in your `teleport.yaml`.
+
 This playbook will make the letsencrypt cert available on the workstation host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
 
 ```bash
@@ -78,7 +81,7 @@ NOTE: Because this playbook stores your certs locally, you won't need to run it 
 
 ## Iterate using Teleport deployment archetypes
 
-This repo will provide some "archetypal" deployments. They can also be used as starting points so you can create your own.
+This repo will provide some "archetypal" deployments. They can also be used as starting points so you can create your own. See playbooks starting with `main_*`.
 
 Here are some of the archetypes:
 
@@ -101,9 +104,10 @@ pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 ### Kubernetes dynamic
 
 * Teleport cluster on a single VM,
-* k3s VM which is joined to the Teleport cluster with type "kube"
-* The Teleport agent is *not* deployed onto the k3s cluster
-* The Teleport agent resides in parallel with the k3s cluster on the same VM
+* k3s VM:
+  * The Teleport agent is *not* deployed onto the k3s cluster
+  * The Teleport agent resides in parallel with the k3s cluster on the same VM
+  * Joined to the Teleport cluster with type "kube"
 * Follows (loosely) this teleport document: [Dynamic Kubernetes Cluster Registration](https://goteleport.com/docs/enroll-resources/kubernetes-access/register-clusters/dynamic-registration/) - TODO: make the playbook match the document closer
 
 This provisions teleport and should be *mostly* idempotent to run

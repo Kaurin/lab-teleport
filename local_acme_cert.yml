@@ -24,7 +24,7 @@
           lego
               --server={{ letsencrypt_working_environment[letsencrypt_working_environment_choice] }}
               --email "{{ e_mail }}"
-              --dns cloudflare
+              --dns "{{ letsencrypt_lego_type }}"
               --domains '*.{{ domain_name }}'
               --domains '{{ domain_name }}'
               --accept-tos

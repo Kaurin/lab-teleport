@@ -1,0 +1,36 @@
+---
+- name: Terraform run
+  hosts: localhost
+  gather_facts: false
+  become: false
+  roles:
+    - tf_kubernetes_dynamic
+
+- name: Teleport host setup
+  hosts: teleport
+  gather_facts: false
+  roles:
+    - teleport_lib
+    - common
+    - teleport
+
+- name: Teleport kube dynamic host setup
+  hosts: teleport_kubernetes_dynamic
+  gather_facts: false
+  roles:
+    - teleport_lib
+    - k3s_install
+    - teleport_kubernetes_crd
+    - common
+    - teleport_kubernetes_dynamic
+
+- name: Teleport admin user
+  hosts: teleport
+  gather_facts: false
+  roles:
+    - teleport_lib
+  tasks:
+    - name: Create admin user
+      changed_when: true
+      ansible.builtin.command:
+        cmd: "tctl users add teleport-admin --roles=editor,access --logins={{ user_remote }}"

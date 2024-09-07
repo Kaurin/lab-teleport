@@ -3,12 +3,13 @@
   ansible.builtin.stat:
     path: /etc/rancher/k3s/k3s.yaml
 
-- name: If teleport config does not exist
+- name: If k3s config does not exist
   when: not k3s_config.stat.exists
   block:
     - name: Install k3s # noqa: command-instead-of-module
       changed_when: true
       ansible.builtin.shell:
+        executable: /bin/bash
         cmd: |
           set -o pipefail
           curl -sfL https://get.k3s.io | sh -

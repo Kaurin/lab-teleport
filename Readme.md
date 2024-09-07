@@ -73,7 +73,15 @@ NOTE: Because this playbook stores your certs locally, you won't need to run it 
 
 # Iterate
 
-This provisions teleport and should be idempotent to run
+This repo will provide some "archetypal" deployments. They can also be used as starting points so you can create your own.
+
+Here are some of the archetypes:
+
+## Simple
+
+Teleport cluster on a single VM and two SSH nodes
+
+This provisions teleport and should be *mostly* idempotent to run
 
 ```bash
 pipenv run ansible-playbook main_simple.yml -vv
@@ -83,4 +91,24 @@ This destroys the environment
 
 ```bash
 pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
+```
+
+## Kubernetes Dynamic
+
+* Teleport cluster on a single VM,
+* k3s VM which is joined via Teleport agent which resides on the same VM.
+* The Teleport agent is *not* deployed onto the k3s cluster
+* The Teleport agent resides in parallel with the k3s cluster
+* Follows (loosely) this teleport document: [Dynamic Kubernetes Cluster Registration](https://goteleport.com/docs/enroll-resources/kubernetes-access/register-clusters/dynamic-registration/) - TODO: make the playbook match the document closer
+
+This provisions teleport and should be *mostly* idempotent to run
+
+```bash
+pipenv run ansible-playbook main_kubernetes_dynamic.yml -vv
+```
+
+This destroys the environment
+
+```bash
+pipenv run ansible-playbook main_kubernetes_dynamic.yml -vv -e terraform_destroy=true
 ```

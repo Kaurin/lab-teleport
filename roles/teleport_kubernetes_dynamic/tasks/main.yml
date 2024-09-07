@@ -1,53 +1,55 @@
-- name: Stat the token file
-  register: stat_token_file
+---
+- name: Stat the teleport token file
+  register: teleport_token_file
   ansible.builtin.stat:
     path: /etc/teleport.token
 
-- name: If token file not present
-  when: not stat_token_file.stat.exists
+- name: If teleport token file does not exist
+  when: not teleport_token_file.stat.exists
   block:
-    - name: Issue kubernetes token
+    - name: Set random token value
+      ansible.builtin.set_fact:
+        token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+
+    - name: Issue kube token
       changed_when: true
       delegate_to: teleport
-      register: enroll_kube_stdout
       ansible.builtin.command:
-        cmd: tctl tokens add --type=node,kube --format=text
+        cmd: "tctl tokens add --type=kube --value {{ token }}"
 
     - name: Place token file
-      changed_when: true
       ansible.builtin.copy:
         dest: /etc/teleport.token
-        content: "{{ enroll_kube_stdout.stdout }}"
+        content: "{{ token }}"
         mode: "0600"
         owner: root
         group: root
 
-    - name: Join node
+    - name: Join kube
       changed_when: true
+      notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:
         cmd: >
-          teleport node configure
-            --output=file:///etc/teleport.yaml
-            --token=/etc/teleport.token
-            --proxy={{ domain_name }}:443
+          teleport configure
+            --roles kube
+            --output file:///etc/teleport.yaml
+            --token /etc/teleport.token
+            --proxy {{ domain_name }}:443
 
-    - name: Configure teleport
-      ansible.builtin.blockinfile:
-        path: /etc/teleport.yaml
-        mode: "0600"
-        block: |
-          kubernetes_service:
-            enabled: "yes"
-            resources:
-            - labels:
-                "*": "*"
+- name: Configure teleport
+  notify: Restart Teleport # teleport_lib role required in play
+  ansible.builtin.blockinfile:
+    path: /etc/teleport.yaml
+    mode: "0600"
+    block: |
+      kubernetes_service:
+        enabled: "yes"
+        resources:
+        - labels:
+            "*": "*"
 
-- name: Start the teleport service
-  ansible.builtin.systemd:
-    daemon_reload: true
-    name: teleport
-    enabled: true
-    state: started
+- name: Flush handlers (Restart Teleport)
+  ansible.builtin.meta: flush_handlers
 
 - name: Stat kubeconfig
   register: stat_kubeconfig

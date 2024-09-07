@@ -32,10 +32,10 @@
               run
 
     - name: Change cert permissions
+      become: true
       ansible.builtin.file:
         path: "{{ lego_path_local }}"
         mode: "u=rwX,g-rwx,o-rwx"
         recurse: true
         state: directory
         owner: "{{ user_local }}"
-        group: "{{ user_local }}"

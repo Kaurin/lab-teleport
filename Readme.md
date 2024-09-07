@@ -16,6 +16,7 @@ TODO
 
 # Requirements
 
+* Teleport Enterprise, and `license.pem` in the root of this git repository
 * Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available, like KVM on Linux or hvf on MacOS
 * Host must have passwordless sudo available on your workstation
 * Host must have teleport installed for `tsh` / `tctl` use on your workstation

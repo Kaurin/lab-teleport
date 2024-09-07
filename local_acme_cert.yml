@@ -3,8 +3,10 @@
 - name: Local setup
   hosts: 127.0.0.1
   connection: local
+  become: false
   tasks:
     - name: Install lego
+      become: "{{ ansible_distribution | string != 'MacOSX' }}" # Disable sudo for MacOSX
       ansible.builtin.package:
         name: "{{ lego_package_os_map[ansible_distribution] }}"
 

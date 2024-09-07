@@ -72,6 +72,14 @@ This playbook will make the letsencrypt cert available on the workstation host. 
 
 Note: You will get a prompt `BECOME password:`. This is prompting you for your sudo password.
 
+On Linux with passwordless sudo or MacOSX
+
+```bash
+pipenv run ansible-playbook local_acme_cert.yml -vv
+```
+
+On Linux - if sudo requires password
+
 ```bash
 pipenv run ansible-playbook local_acme_cert.yml -vv --ask-become-pass
 ```

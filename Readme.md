@@ -19,16 +19,13 @@ Teleport deployments created with this repository are not meant for production u
 
 * Teleport Enterprise, and `license.pem` in the root of this git repository
 * Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available, like KVM on Linux or hvf on MacOS
-* Host must have passwordless sudo available on your workstation
 * Host must have teleport installed for `tsh` / `tctl` use on your workstation
 * DNS and SSL
   * If this is a public lab (accessible from the internet)
       * Use the `acme` config in your `teleport.yaml`
       * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160` (assuming home lab behind an internet-facing router)
   * If this is a private lab (not accessible from the internet)
-    * CloudFlare hosted domain
-    * CloudFlare token placed at the root of this git repository as `token.txt`.
-      * Use [these instructions] on how to get the token (https://go-acme.github.io/lego/dns/cloudflare/#api-tokens) to obtain the token.
+    * Use one of the [lego supported](https://go-acme.github.io/lego/dns/) DNS providers. CloudFlare example is in `inventory/hosts.yml`
       * DNS one of:
         * Privately hosted so it intercepts/rewrites `*.yourdomain.com` to `192.168.0.160`
         * Publicly hosted where it resolves `*.yourdomain.com` and `yourdomain.com` to `192.168.0.160`
@@ -73,8 +70,10 @@ Skip this part if your Teleport environment will be reachable from the internet,
 
 This playbook will make the letsencrypt cert available on the workstation host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
 
+Note: You will get a prompt `BECOME password:`. This is prompting you for your sudo password.
+
 ```bash
-pipenv run ansible-playbook local_acme_cert.yml -vv
+pipenv run ansible-playbook local_acme_cert.yml -vv --ask-become-pass
 ```
 
 NOTE: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.

@@ -3,16 +3,14 @@
   connection: local
   run_once: true
   changed_when: true
-  environment:
-    CLOUDFLARE_EMAIL: "{{ e_mail }}"
-    CLOUDFLARE_DNS_API_TOKEN: "{{ lookup('ansible.builtin.file', playbook_dir + '/token.txt') }}"
+  environment: "{{ letsencrypt_lego_env_vars }}"
   ansible.builtin.command:
     cmd: >
       lego
-          --server "{{ letsencrypt_env[letsencrypt_env_choice] }}"
+          --server "{{ letsencrypt_working_environment[letsencrypt_working_environment_choice] }}"
           --email "{{ e_mail }}"
           --path "{{ lego_path_local }}"
-          --dns cloudflare
+          --dns "{{ letsencrypt_lego_type }}"
           --domains '*.{{ domain_name }}'
           renew --days 10
 

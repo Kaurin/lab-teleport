@@ -6,7 +6,7 @@
   tasks:
     - name: Install lego
       ansible.builtin.package:
-        name: golang-github-acme-lego
+        name: "{{ lego_package_os_map[ansible_distribution] }}"
 
     - name: Create cert dir
       ansible.builtin.file:
@@ -16,13 +16,11 @@
 
     - name: Get the cert
       changed_when: true
-      environment:
-        CLOUDFLARE_EMAIL: "{{ e_mail }}"
-        CLOUDFLARE_DNS_API_TOKEN: "{{ lookup('ansible.builtin.file', playbook_dir + '/token.txt') }}"
+      environment: "{{ letsencrypt_lego_env_vars }}"
       ansible.builtin.command:
         cmd: >-
           lego
-              --server={{ letsencrypt_env[letsencrypt_env_choice] }}
+              --server={{ letsencrypt_working_environment[letsencrypt_working_environment_choice] }}
               --email "{{ e_mail }}"
               --dns cloudflare
               --domains '*.{{ domain_name }}'

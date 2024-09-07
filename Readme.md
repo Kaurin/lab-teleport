@@ -16,17 +16,21 @@ TODO
 
 # Requirements
 
-* Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available, like KVM
-* Host must have passwordless sudo available
-* Host must have teleport installed (client only)
-* DNS/SSL:
-  * If Teleport is accessible from the internet - use the `acme` config in your `teleport.yaml` - TODO not supported at the moment
-  * In Teleport won't be accessible from the internet :
-    * CloudFlare-hosted domain
-    * CloudFlare token for your domain available in the `token.txt` file
-    * Your DNS must be one of:
-      * Be privately hosted so it intercepts/rewrites `*.your-domain-name.com` to `192.168.0.160`
-      * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160`
+* Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available, like KVM on Linux or hvf on MacOS
+* Host must have passwordless sudo available on your workstation
+* Host must have teleport installed for `tsh` / `tctl` use on your workstation
+* DNS and SSL
+  * If this is a public lab (accessible from the internet)
+    * If Teleport is accessible from the internet use the `acme` config in your `teleport.yaml` - TODO not supported at the moment
+    * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160` (assuming home lab)
+  * If this is a private lab (not accessible from the internet)
+    * CloudFlare hosted domain
+    * CloudFlare token placed at the root of this git repository as `token.txt`.
+      * Use [these instructions] on how to get the token (https://go-acme.github.io/lego/dns/cloudflare/#api-tokens) to obtain the token.
+      * DNS one of:
+        * Privately hosted so it intercepts/rewrites `*.yourdomain.com` to `192.168.0.160`
+        * Publicly hosted where it resolves `*.yourdomain.com` and `yourdomain.com` to `192.168.0.160`
+        * Hosts file manipulation, but I don't like this approach
 * Bridged network on the host with the bridge interface under the name `br0`
 * Lots of RAM to facilitate virtual machines TODO: how much ram?
 
@@ -71,13 +75,13 @@ pipenv run ansible-playbook local_acme_cert.yml -vv
 
 NOTE: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
 
-# Iterate
+## Iterate using Teleport deployment archetypes
 
 This repo will provide some "archetypal" deployments. They can also be used as starting points so you can create your own.
 
 Here are some of the archetypes:
 
-## Simple
+### Simple
 
 Teleport cluster on a single VM and two SSH nodes
 
@@ -93,12 +97,12 @@ This destroys the environment
 pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 ```
 
-## Kubernetes Dynamic
+### Kubernetes dynamic
 
 * Teleport cluster on a single VM,
-* k3s VM which is joined via Teleport agent which resides on the same VM.
+* k3s VM which is joined to the Teleport cluster with type "kube"
 * The Teleport agent is *not* deployed onto the k3s cluster
-* The Teleport agent resides in parallel with the k3s cluster
+* The Teleport agent resides in parallel with the k3s cluster on the same VM
 * Follows (loosely) this teleport document: [Dynamic Kubernetes Cluster Registration](https://goteleport.com/docs/enroll-resources/kubernetes-access/register-clusters/dynamic-registration/) - TODO: make the playbook match the document closer
 
 This provisions teleport and should be *mostly* idempotent to run

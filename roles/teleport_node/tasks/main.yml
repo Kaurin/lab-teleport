@@ -34,7 +34,7 @@
 
     - name: Join node (Agent)
       changed_when: true
-      when: node_is_agentless is not defined or not node_is_agentless
+      when: not (node_is_agentless | default(false) )
       notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:
         cmd: >

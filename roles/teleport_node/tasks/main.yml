@@ -7,6 +7,11 @@
 - name: If teleport token file does not exist
   when: not teleport_token_file.stat.exists
   block:
+    - name: Install openssh for agentless nodes
+      when: node_is_agentless
+      ansible.builtin.package:
+        name: openssh-server
+
     - name: Set random token value
       ansible.builtin.set_fact:
         token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"

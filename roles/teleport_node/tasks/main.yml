@@ -12,7 +12,7 @@
       ansible.builtin.service:
         name: ssh
         enabled: true
-        state: enabled
+        state: started
 
     - name: Set random token value
       ansible.builtin.set_fact:

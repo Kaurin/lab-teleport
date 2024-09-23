@@ -7,10 +7,12 @@
 - name: If teleport token file does not exist
   when: not teleport_token_file.stat.exists
   block:
-    - name: Install openssh for agentless nodes
+    - name: Enable the SSH service on agentless nodes
       when: node_is_agentless
-      ansible.builtin.package:
-        name: openssh-server
+      ansible.builtin.service:
+        name: ssh
+        enabled: true
+        state: enabled
 
     - name: Set random token value
       ansible.builtin.set_fact:

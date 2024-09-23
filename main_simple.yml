@@ -14,8 +14,8 @@
     - common
     - teleport
 
-- name: Bootstrap SSH nodes with Teleport Agent
-  hosts: nodes_ssh
+- name: Bootstrap SSH nodes with Teleport (with or without the agent)
+  hosts: nodes_ssh,nodes_ssh_agentless
   gather_facts: false
   roles:
     - teleport_lib

@@ -25,8 +25,9 @@
         owner: root
         group: root
 
-    - name: Join node
+    - name: Join node (Agent)
       changed_when: true
+      when: not node_is_agentless
       notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:
         cmd: >
@@ -34,6 +35,17 @@
             --output file:///etc/teleport.yaml
             --token /etc/teleport.token
             --proxy {{ domain_name }}:443
+            --labels hostname={{ inventory_hostname }}
+
+    - name: Join node (Agentless)
+      changed_when: true
+      when: node_is_agentless
+      ansible.builtin.command:
+        cmd: >
+          teleport join openssh
+            --token /etc/teleport.token
+            --proxy-server {{ domain_name }}:443
+            --address {{ inventory_hostname }}.{{ domain_name }}:22
             --labels hostname={{ inventory_hostname }}
 
 # TODO, use ansible `blockinfile` to add-on to the existing config if needed

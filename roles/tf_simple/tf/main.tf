@@ -94,6 +94,32 @@ module "teleport_lab" {
           }
         }
       ]
+    },
+    {
+      name     = "teleport-agentless-node"
+      quantity = 2
+      ram      = 512
+      vcpu     = 1
+      meta_data = {
+        "instance-id" : "teleport-agentless-node",
+        "local-hostname" : "teleport-agentless-node"
+      }
+      user_data = local.user_data
+      network_configs = [
+        for num in range(211, 213) : # 201-202, not including 203
+        {
+          "version" : 2
+          "ethernets" : {
+            "ens3" : {
+              "addresses" : ["192.168.0.${num}/24"]
+              "gateway4" : "192.168.0.1"
+              "nameservers" : {
+                "addresses" : ["192.168.0.1", "192.168.0.2"]
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }

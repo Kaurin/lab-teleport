@@ -46,7 +46,7 @@
 
     - name: Join node (Agentless)
       changed_when: true
-      when: node_is_agentless
+      when: node_is_agentless | default(false)
       ansible.builtin.command:
         cmd: >
           teleport join openssh

@@ -4,3 +4,12 @@
     state: restarted
     enabled: true
     daemon_reload: true
+
+- name: Reset SSH Connection
+  ansible.builtin.meta: reset_connection
+
+- name: Restart SSH daemon
+  ansible.builtin.systemd:
+    name: "{{ ssh_name_map[ansible_os_family] }}"
+    state: restarted
+    enabled: true

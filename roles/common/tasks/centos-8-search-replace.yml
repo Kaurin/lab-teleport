@@ -1,0 +1,6 @@
+- name: Search-replace
+  loop: "{{ repos.stdout_lines }}"
+  ansible.builtin.replace:
+    dest: "{{ item }}"
+    regexp: "{{ outer_item['regexp'] }}"
+    replace: "{{ outer_item['replace'] }}"

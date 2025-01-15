@@ -1,57 +1,61 @@
-- name: Renew the cert
-  delegate_to: 127.0.0.1
-  connection: local
-  run_once: true
-  changed_when: true
-  become: false
-  environment: "{{ letsencrypt_lego_env_vars }}"
-  ansible.builtin.command:
-    cmd: >
-      lego
-          --server "{{ letsencrypt_working_environment[letsencrypt_working_environment_choice] }}"
-          --email "{{ e_mail }}"
-          --path "{{ lego_path_local }}"
-          --dns "{{ letsencrypt_lego_type }}"
-          --domains '*.{{ domain_name }}'
-          renew --days 10
+- name: Block which applies only to the teleport cluster
+  when: inventory_hostname == 'teleport'
+  delegate_to: teleport
+  block:
+    - name: Renew the cert
+      delegate_to: 127.0.0.1
+      connection: local
+      run_once: true
+      changed_when: true
+      become: false
+      environment: "{{ letsencrypt_lego_env_vars }}"
+      ansible.builtin.command:
+        cmd: >
+          lego
+              --server "{{ letsencrypt_working_environment[letsencrypt_working_environment_choice] }}"
+              --email "{{ e_mail }}"
+              --path "{{ lego_path_local }}"
+              --dns "{{ letsencrypt_lego_type }}"
+              --domains '*.{{ domain_name }}'
+              renew --days 10
 
-- name: Create cert dir
-  notify: Restart Teleport # teleport_lib role required in play
-  ansible.builtin.file:
-    path: "{{ lego_path }}"
-    state: directory
-    mode: "0700"
+    - name: Create cert dir
+      notify: Restart Teleport # teleport_lib role required in play
+      ansible.builtin.file:
+        path: "{{ lego_path }}"
+        state: directory
+        mode: "0700"
 
-- name: Drop the cert/key and license file off
-  notify: Restart Teleport # teleport_lib role required in play
-  vars:
-    lego_file_mapping:
-      - local_file: "{{ lego_path_local }}/certificates/_.{{ domain_name }}.crt"
-        remote_file: "{{ lego_path }}/{{ domain_name }}.crt"
-      - local_file: "{{ lego_path_local }}/certificates/_.{{ domain_name }}.key"
-        remote_file: "{{ lego_path }}/{{ domain_name }}.key"
-      - local_file: "{{ playbook_dir }}/license.pem"
-        remote_file: "/var/lib/teleport/license.pem"
-  loop: "{{ lego_file_mapping }}"
-  ansible.builtin.copy:
-    src: "{{ item.local_file }}"
-    dest: "{{ item.remote_file }}"
-    mode: "0600"
+    - name: Drop the cert/key and license file off
+      notify: Restart Teleport # teleport_lib role required in play
+      vars:
+        lego_file_mapping:
+          - local_file: "{{ lego_path_local }}/certificates/_.{{ domain_name }}.crt"
+            remote_file: "{{ lego_path }}/{{ domain_name }}.crt"
+          - local_file: "{{ lego_path_local }}/certificates/_.{{ domain_name }}.key"
+            remote_file: "{{ lego_path }}/{{ domain_name }}.key"
+          - local_file: "{{ playbook_dir }}/license.pem"
+            remote_file: "/var/lib/teleport/license.pem"
+      loop: "{{ lego_file_mapping }}"
+      ansible.builtin.copy:
+        src: "{{ item.local_file }}"
+        dest: "{{ item.remote_file }}"
+        mode: "0600"
 
-- name: Copy teleport config
-  notify: Restart Teleport # teleport_lib role required in play
-  ansible.builtin.template:
-    src: teleport.yaml.j2
-    dest: /etc/teleport.yaml
-    mode: "0600"
+    - name: Copy teleport config
+      notify: Restart Teleport # teleport_lib role required in play
+      ansible.builtin.template:
+        src: teleport.yaml.j2
+        dest: /etc/teleport.yaml
+        mode: "0600"
 
-- name: Flush handlers (Restart Teleport)
-  ansible.builtin.meta: flush_handlers
+    - name: Flush handlers (Restart Teleport)
+      ansible.builtin.meta: flush_handlers
 
-- name: Wait until teleport is ready
-  changed_when: false
-  register: teleport_status
-  until: teleport_status.rc == 0
-  retries: 10
-  delay: 2
-  ansible.builtin.command: tctl status
+    - name: Wait until teleport is ready
+      changed_when: false
+      register: teleport_status
+      until: teleport_status.rc == 0
+      retries: 10
+      delay: 2
+      ansible.builtin.command: tctl status

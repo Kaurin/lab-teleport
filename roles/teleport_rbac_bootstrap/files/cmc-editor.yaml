@@ -1,0 +1,10 @@
+kind: role
+version: v7
+metadata:
+  name: cmc-editor
+spec:
+  allow:
+    rules:
+    - resources: ['cluster_maintenance_config']
+      verbs: ['create', 'read', 'update', 'delete']
+

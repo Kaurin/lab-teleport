@@ -1,13 +1,16 @@
+# Remember, this and other variables can be overriden via the ansible variables in group_vars/all/main.yml
 variable "public_key" {
   type        = string
   description = "Location of the public key. For example: `~/.ssh/teleport.pub`"
 }
 
+# Remember, this and other variables can be overriden via the ansible variables in group_vars/all/main.yml
 variable "cloud_image" {
   type        = string
   description = "Location of the QCOW2 cloud image. For example: `/home/myuser/Downloads/Fedora-Cloud-Base-Generic.x86_64-40-1.14.qcow2`"
 }
 
+# Remember, this and other variables can be overriden via the ansible variables in group_vars/all/main.yml
 variable "login_username" {
   type        = string
   description = "Default login username for the guest virtual machines"
@@ -32,9 +35,9 @@ locals {
 }
 
 module "teleport_lab" {
-  # source = "../terraform-libvirt-lab"
+  # source = "/home/milos/git/terraform-libvirt-lab"
   source  = "Kaurin/lab/libvirt"
-  version = "0.2.1"
+  version = "0.3.0"
 
   libvirt_pool_name = "teleport_pool"
   libvirt_pool_dir  = "/var/teleport_pool"
@@ -58,7 +61,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "eth0" : {
               "addresses" : ["192.168.0.160/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -84,7 +87,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "eth0" : {
               "addresses" : ["192.168.0.${num}/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -110,7 +113,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "eth0" : {
               "addresses" : ["192.168.0.${num}/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {

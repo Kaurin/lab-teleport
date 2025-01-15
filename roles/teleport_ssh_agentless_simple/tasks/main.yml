@@ -1,0 +1,40 @@
+---
+- name: Stat the teleport token file
+  register: teleport_token_file
+  ansible.builtin.stat:
+    path: /etc/teleport.token
+
+- name: If teleport token file does not exist
+  when:
+    - not teleport_token_file.stat.exists
+    - "'nodes_ssh_agentless' in group_names"
+  block:
+    - name: Set random token value
+      ansible.builtin.set_fact:
+        token_agentless: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+
+    - name: Issue node token
+      changed_when: true
+      delegate_to: teleport
+      ansible.builtin.command:
+        cmd: "tctl tokens add --type=node --value {{ token_agentless }}"
+
+    - name: Place token file
+      ansible.builtin.copy:
+        dest: /etc/teleport.token
+        content: "{{ token_agentless }}"
+        mode: "0600"
+        owner: root
+        group: root
+
+    - name: Join node (Agent)
+      changed_when: true
+      notify: Restart Teleport # teleport_lib role required in play
+      ansible.builtin.command:
+        cmd: >
+          teleport join openssh
+            --address {{ ansible_default_ipv4.address }}:22
+            --proxy-server {{ domain_name }}:443
+            --join-method token
+            --token {{ token_agentless }}
+            --labels env=dev

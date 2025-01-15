@@ -2,18 +2,13 @@
 - name: Stat the teleport token file
   register: teleport_token_file
   ansible.builtin.stat:
-    path: /etc/teleport.yaml
+    path: /etc/teleport.token
 
 - name: If teleport token file does not exist
-  when: not teleport_token_file.stat.exists
+  when:
+    - not teleport_token_file.stat.exists
+    - "'nodes_ssh_agent' in group_names"
   block:
-    - name: Enable the SSH service on agentless nodes
-      when: node_is_agentless | default(false)
-      ansible.builtin.service:
-        name: ssh
-        enabled: true
-        state: started
-
     - name: Set random token value
       ansible.builtin.set_fact:
         token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
@@ -34,7 +29,6 @@
 
     - name: Join node (Agent)
       changed_when: true
-      when: not (node_is_agentless | default(false) )
       notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:
         cmd: >
@@ -42,18 +36,5 @@
             --output file:///etc/teleport.yaml
             --token /etc/teleport.token
             --proxy {{ domain_name }}:443
-            --labels hostname={{ inventory_hostname }}
+            --labels hostname={{ ansible_hostname }}
             --labels commonkey=commonvalue
-
-    - name: Join node (Agentless)
-      changed_when: true
-      when: (node_is_agentless | default(false))
-      ansible.builtin.command:
-        cmd: >
-          teleport join openssh
-            --token /etc/teleport.token
-            --proxy-server {{ domain_name }}:443
-            --address {{ inventory_hostname }}.{{ domain_name }}:22
-            --labels hostname={{ inventory_hostname }}
-
-# TODO, use ansible `blockinfile` to add-on to the existing config if needed

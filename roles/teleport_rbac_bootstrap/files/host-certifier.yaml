@@ -1,0 +1,16 @@
+kind: role
+version: v5
+metadata:
+  name: host-certifier
+spec:
+  allow:
+    rules:
+      - resources:
+          - host_cert
+        verbs:
+          - list
+          - create
+          - read
+          - update
+          - delete
+

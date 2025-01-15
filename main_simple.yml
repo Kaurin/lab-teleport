@@ -1,34 +1,25 @@
 ---
 - name: Terraform run
   hosts: localhost
-  gather_facts: false
   become: false
   roles:
     - tf_simple
 
-- name: Teleport host setup
-  hosts: teleport
-  gather_facts: false
+- name: Teleport cluster and agents setup
+  hosts:
+    - teleport
+    - nodes_ssh_agent
+    - nodes_ssh_agentless
   roles:
     - teleport_lib
     - common
     - teleport
+    - teleport_ssh_agent
+    - teleport_ssh_agentless
+    # - teleport_ssh_agentless_simple # Broken on most distros
 
-- name: Bootstrap SSH nodes with Teleport (with or without the agent)
-  hosts: nodes_ssh,nodes_ssh_agentless
-  gather_facts: false
-  roles:
-    - teleport_lib
-    - common
-    - teleport_node
-
-- name: Teleport admin user
+- name: Teleport RBAC Bootstrap
   hosts: teleport
-  gather_facts: false
   roles:
     - teleport_lib
-  tasks:
-    - name: Create admin user
-      changed_when: true
-      ansible.builtin.command:
-        cmd: "tctl users add teleport-admin --roles=editor,access --logins={{ user_remote }}"
+    - teleport_rbac_bootstrap

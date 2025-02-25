@@ -1,0 +1,9 @@
+roles: "kube,app,discovery"
+proxyAddr: "teleport.dood.ie:443"
+enterprise: true
+joinParams:
+  method: "kubernetes"
+  tokenName: "teleport-kube-agent-token"
+kubeClusterName: agent-discovery
+updater:
+  enabled: true

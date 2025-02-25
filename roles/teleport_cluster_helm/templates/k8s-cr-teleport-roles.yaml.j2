@@ -1,0 +1,45 @@
+---
+apiVersion: resources.teleport.dev/v1
+kind: TeleportRoleV7
+metadata:
+  name: member
+  namespace: teleport-cluster
+spec:
+  allow:
+    kubernetes_groups:
+      - system:masters
+    kubernetes_resources:
+      - kind: "*"
+        namespace: "*"
+        name: "*"
+        verbs: ["*"]
+    kubernetes_labels:
+      "*": "*"
+---
+apiVersion: resources.teleport.dev/v1
+kind: TeleportRoleV7
+metadata:
+  name: cmc-editor
+  namespace: teleport-cluster
+spec:
+  allow:
+    rules:
+      - resources: ["cluster_maintenance_config"]
+        verbs: ["create", "read", "update", "delete"]
+---
+apiVersion: resources.teleport.dev/v1
+kind: TeleportRoleV7
+metadata:
+  name: host-certifier
+  namespace: teleport-cluster
+spec:
+  allow:
+    rules:
+      - resources:
+          - host_cert
+        verbs:
+          - list
+          - create
+          - read
+          - update
+          - delete

@@ -1,0 +1,13 @@
+---
+apiVersion: resources.teleport.dev/v2
+kind: TeleportUser
+metadata:
+  name: teleport-admin
+  namespace: teleport-cluster
+spec:
+  roles:
+    - member
+    - editor
+    - access
+    - cmc-editor
+    - host-certifier

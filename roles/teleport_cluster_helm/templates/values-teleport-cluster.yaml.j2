@@ -1,0 +1,25 @@
+
+clusterName: {{ domain_name }}
+acme: false
+authentication:
+  type: local
+  secondFactor: "on"
+
+proxyProtocol: "off"
+proxyListenerMode: multiplex
+
+enterprise: true
+licenseSecretName: license
+
+operator:
+  enabled: true
+
+proxy:
+  service:
+    type: ClusterIP
+
+ingress:
+  enabled: false
+
+log:
+  level: DEBUG

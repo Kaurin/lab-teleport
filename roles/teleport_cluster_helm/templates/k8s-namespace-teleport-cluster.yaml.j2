@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: teleport-cluster
+    pod-security.kubernetes.io/enforce: baseline
+  name: teleport-cluster
+---
+# Needed so we can create the join token in this namespace ahead of installing the agent
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: teleport-kube-agent
+  name: teleport-kube-agent

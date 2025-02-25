@@ -1,0 +1,33 @@
+---
+# Teleport cluster installed on a single VM, and a K3s cluster with teleport-kube-agent installed
+
+- name: Terraform run
+  hosts: localhost
+  become: false
+  roles:
+    - tf_teleport_kube
+
+- name: K3s install
+  hosts:
+    - nodes_k3s_teleport_cluster
+    - nodes_k3s_teleport_agent
+  roles:
+    - teleport_lib
+    - k3s_install
+
+- name: Helm install teleport-cluster
+  hosts: nodes_k3s_teleport_cluster
+  roles:
+    - teleport_lib
+    - teleport_cluster_helm
+# - name: Helm install teleport-kube-agent
+#   hosts: nodes_k3s_teleport_agent
+#   roles:
+#     - teleport_lib
+#     - teleport_kube_agent_helm
+
+# - name: Teleport RBAC Bootstrap
+#   hosts: teleport
+#   roles:
+#     - teleport_lib
+#     - teleport_rbac_bootstrap

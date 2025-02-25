@@ -1,0 +1,25 @@
+# Following this advice: https://github.com/gravitational/teleport/discussions/13006#discussioncomment-4589306
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: teleport-cluster
+  namespace: teleport-cluster
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: HostRegexp(`{{ domain_name }}`, `{subdomain:[a-zA-Z0-9-]+}.{{ domain_name }}`, `{subdomain:[a-zA-Z0-9-]+}teleport.cluster.local`)
+      services:
+        - name: teleport-cluster
+          kind: Service
+          scheme: https
+          passHostHeader: true
+          port: 443
+          serversTransport: teleport-insecure-https 
+  tls:
+    secretName: teleport-https
+    domains:
+    - main: teleport.dood.ie
+      sans:
+       - "*.teleport.dood.ie"

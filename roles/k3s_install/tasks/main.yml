@@ -1,15 +1,40 @@
-- name: Stat the k3s config file
-  register: k3s_config
-  ansible.builtin.stat:
-    path: /etc/rancher/k3s/k3s.yaml
-
-- name: If k3s config does not exist
-  when: not k3s_config.stat.exists
+- name: Block for the k3s_install host candidates
+  when: >
+    'teleport_kubernetes_dynamic' in group_names
+    or 'nodes_k3s_teleport_cluster' in group_names
+    or 'nodes_k3s_teleport_agent' in group_names
   block:
-    - name: Install k3s # noqa: command-instead-of-module
-      changed_when: true
-      ansible.builtin.shell:
-        executable: /bin/bash
-        cmd: |
-          set -o pipefail
-          curl -sfL https://get.k3s.io | sh -
+    - name: Stat the k3s config file
+      register: k3s_config
+      ansible.builtin.stat:
+        path: /etc/rancher/k3s/k3s.yaml
+
+    - name: If k3s config does not exist
+      when: not k3s_config.stat.exists
+      block:
+        - name: Downloads the k3s install script
+          ansible.builtin.get_url:
+            url: https://get.k3s.io
+            dest: /root/k3s.sh
+            mode: "0777"
+
+        - name: Install k3s
+          changed_when: true
+          ansible.builtin.command:
+            cmd: /root/k3s.sh
+
+    - name: Install python3-kubernetes
+      ansible.builtin.package:
+        name: python3-kubernetes # Ubuntu for now
+
+    - name: Create the .kube in root's homedir
+      ansible.builtin.file:
+        dest: /root/.kube
+        state: directory
+        mode: "0700"
+
+    - name: Link kubeconfig to root's homedir
+      ansible.builtin.file:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /root/.kube/config
+        state: link

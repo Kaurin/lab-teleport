@@ -1,0 +1,30 @@
+roles: "kube,app,discovery"
+proxyAddr: "teleport.dood.ie:443"
+enterprise: true
+joinParams:
+  method: "kubernetes"
+  tokenName: "{{ inventory_hostname }}"
+kubeClusterName: "{{ inventory_hostname }}"
+updater:
+  enabled: true
+
+
+# Below is needed for JKWS joining via helm chart as a workaround, for now. See: https://github.com/gravitational/teleport/issues/36116#issuecomment-2090877802
+extraEnv:
+  - name: KUBERNETES_TOKEN_PATH
+    value: /var/run/secrets/tokens/join-sa-token
+
+extraVolumeMounts:
+  - mountPath: /var/run/secrets/tokens
+    name: join-sa-token
+
+extraVolumes:
+  - name: join-sa-token
+    projected:
+      sources:
+        - serviceAccountToken:
+            path: join-sa-token
+            expirationSeconds: 600
+            # `example.teleport.sh` must be replaced with the name of
+            # your Teleport cluster.
+            audience: "{{ domain_name }}"

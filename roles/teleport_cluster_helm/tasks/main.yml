@@ -116,8 +116,5 @@
     create_namespace: true
 
 - name: Create the Teleport-admin user using CR
-  notify:
-    - Sleep 10 seconds
-    - Reset teleport-admin user
   kubernetes.core.k8s:
     template: k8s-cr-teleport-admin-user.yaml.j2

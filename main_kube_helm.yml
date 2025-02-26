@@ -20,14 +20,19 @@
   roles:
     - teleport_lib
     - teleport_cluster_helm
-# - name: Helm install teleport-kube-agent
-#   hosts: nodes_k3s_teleport_agent
-#   roles:
-#     - teleport_lib
-#     - teleport_kube_agent_helm
 
-# - name: Teleport RBAC Bootstrap
-#   hosts: teleport
-#   roles:
-#     - teleport_lib
-#     - teleport_rbac_bootstrap
+- name: Helm install teleport-kube-agent
+  hosts: nodes_k3s_teleport_agent
+  roles:
+    - teleport_lib
+    - teleport_kube_agent_helm
+
+- name: Reset teleport-admin user
+  hosts: nodes_k3s_teleport_cluster
+  roles:
+    - teleport_lib
+  tasks:
+    - name: Reset teleport-admin user
+      changed_when: true
+      ansible.builtin.command:
+        cmd: kubectl exec -n teleport-cluster -ti deployment/teleport-cluster-auth -- tctl users reset teleport-admin

@@ -1,0 +1,18 @@
+---
+apiVersion: resources.teleport.dev/v2
+kind: TeleportProvisionToken
+metadata:
+  name: {{ inventory_hostname }}
+  namespace: teleport-cluster
+spec:
+  roles: [Kube,App,Discovery]
+  join_method: kubernetes
+  kubernetes:
+    type: static_jwks
+    static_jwks:
+      jwks: |
+        {{ jwks.stdout }}
+    # allow specifies the rules by which the Auth Server determines if the node
+    # should be allowed to join.
+    allow:
+      - service_account: "teleport-kube-agent:teleport-kube-agent"

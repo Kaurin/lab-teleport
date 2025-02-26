@@ -7,10 +7,10 @@ name = "pypi"
 ansible = "*"
 cryptography = "*"
 jmespath = "*"
+kubernetes = "*"
 
 [dev-packages]
 ansible-lint = "*"
 
 [requires]
 python_version = "3.9"
-

@@ -5,13 +5,28 @@
   roles:
     - tf_kubernetes_dynamic
 
-- name: Teleport host setup
+- name: Tasks for all hosts
   hosts: teleport, teleport_kubernetes_dynamic
   roles:
     - teleport_lib
     - common
+
+- name: Teleport host setup
+  hosts: teleport
+  roles:
+    - teleport_lib
     - teleport
+
+- name: Kubernetes cluster setup
+  hosts: teleport_kubernetes_dynamic
+  roles:
+    - teleport_lib
     - k3s_install
     - teleport_kubernetes_crd
     - teleport_kubernetes_dynamic
+
+- name: Rbac the Teleport host
+  hosts: teleport
+  roles:
+    - teleport_lib
     - teleport_rbac_bootstrap

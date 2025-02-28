@@ -1,0 +1,5 @@
+- name: Apply kube_cluster.yaml
+  delegate_to: teleport
+  changed_when: true
+  ansible.builtin.command:
+    cmd: tctl create /root/kube_cluster.yaml

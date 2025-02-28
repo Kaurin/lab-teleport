@@ -1,6 +1,3 @@
-- name: Block for the k3s_install host candidates
-  when: "'teleport_kubernetes_dynamic' in group_names"
-  block:
-    - name: CRD Bind
-      kubernetes.core.k8s:
-        template: kube-crd-bind.j2.yaml
+- name: CRD Bind
+  kubernetes.core.k8s:
+    template: kube-crd-bind.j2.yaml

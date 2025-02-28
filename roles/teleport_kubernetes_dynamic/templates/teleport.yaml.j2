@@ -1,0 +1,31 @@
+version: v3
+
+teleport:
+  nodename: "{{ inventory_hostname }}"
+  data_dir: /var/lib/teleport
+  join_params:
+    token_name: /etc/teleport.token
+    method: token
+  proxy_server: "{{ domain_name }}:443"
+  log:
+    output: stderr
+    severity: DEBUG
+
+auth_service:
+  enabled: false
+
+proxy_service:
+  enabled: false
+
+ssh_service:
+  enabled: true
+  commands:
+  - name: hostname
+    command: [hostname]
+    period: 1m0s
+
+kubernetes_service:
+  enabled: "yes"
+  resources:
+  - labels:
+      "*": "*"

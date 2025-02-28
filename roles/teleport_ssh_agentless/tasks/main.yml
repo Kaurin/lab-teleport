@@ -1,76 +1,59 @@
 ---
-- name: Check if we already signed the host
+- name: Include the teleport_semaphore role
+  ansible.builtin.include_role:
+    name: teleport_semaphore
+
+- name: Check if we already signed the node
   delegate_to: teleport
   register: auth_signed_file
   ansible.builtin.stat:
-    path: /root/teleport-authsign/{{ ansible_hostname }}
+    path: "/root/{{ ansible_hostname }}-ident"
 
-- name: This role applies only to hosts in the nodes_ssh_agentless group
-  when:
-    - "'nodes_ssh_agentless' in group_names"
-    - not auth_signed_file.stat.exists
+- name: Wait for Teleport to become ready
+  ansible.builtin.include_role:
+    name: util_wait_teleport_ready
+
+- name: Tasks if node nod signed previously
+  when: not auth_signed_file.stat.exists
   block:
-    - name: Block for items needed to be performed on the cluster
-      delegate_to: teleport
-      block:
-        - name: Create directory for templating out the agentless node objects
-          ansible.builtin.file:
-            path: /root/teleport-agentless
-            state: directory
-            mode: "0700"
-            owner: root
 
+    # Don't merge this block with the previous `block`. We need to step out back to the previous `block` later
+    - name: Block for items needed to be performed on the cluster
+      delegate_to: "{{ teleport_executor }}"
+      block:
         - name: Set random name value
           ansible.builtin.set_fact:
             agentless_name_uuid: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid | lower }}"
 
-
         - name: Template out the agentless node object
           ansible.builtin.template:
             src: node_agentless.yaml.j2
-            dest: "/root/teleport-agentless/{{ ansible_hostname }}"
+            dest: "/root/{{ ansible_hostname }}.yaml"
             mode: "0600"
             owner: root
 
-        - name: Create the Agentless node object from file
-          changed_when: true
-          ansible.builtin.command:
-            cmd: "tctl create -f '/root/teleport-agentless/{{ ansible_hostname }}'"
-
-        - name: Create directory for auth sign keypairs
-          ansible.builtin.file:
-            path: /root/teleport-authsign
-            state: directory
-            mode: "0700"
-            owner: root
-
-        - name: Tctl auth sign
-          changed_when: true
-          ansible.builtin.command:
-            cmd: >
-              tctl auth sign
-                --host  {{ ansible_default_ipv4.address }},{{ ansible_hostname }},{{ agentless_name_uuid }}
-                --format openssh
-                --out /root/teleport-authsign/{{ ansible_hostname }}
+        - name: Create the node object and sign it (kube or node teleport cluster)
+          ansible.builtin.include_tasks:
+            file: "auth-sign-{{ teleport_semaphore_auth_host_type }}.yml"
 
         - name: Slurp the Key
           no_log: true
           register: agentless_slurped_key
           ansible.builtin.slurp:
-            src: "/root/teleport-authsign/{{ ansible_hostname }}"
+            src: "/root/{{ ansible_hostname }}-ident"
 
         - name: Slurp the Cert
           no_log: true
           register: agentless_slurped_cert
           ansible.builtin.slurp:
-            src: "/root/teleport-authsign/{{ ansible_hostname }}-cert.pub"
+            src: "/root/{{ ansible_hostname }}-ident-cert.pub"
 
 
     # Stepping back to the agentless host
     - name: Place the key
       no_log: true
       ansible.builtin.copy:
-        dest: "/etc/ssh/{{ ansible_hostname }}"
+        dest: "/etc/ssh/{{ ansible_hostname }}-ident"
         mode: "0600"
         owner: root
         content: "{{ agentless_slurped_key.content | b64decode }}"
@@ -78,7 +61,7 @@
     - name: Place the cert
       no_log: true
       ansible.builtin.copy:
-        dest: "/etc/ssh/{{ ansible_hostname }}-cert.pub"
+        dest: "/etc/ssh/{{ ansible_hostname }}-ident-cert.pub"
         mode: "0600"
         owner: root
         content: "{{ agentless_slurped_cert.content | b64decode }}"
@@ -88,14 +71,14 @@
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         regexp: '^HostKey'
-        line: "HostKey /etc/ssh/{{ ansible_hostname }}"
+        line: "HostKey /etc/ssh/{{ ansible_hostname }}-ident"
 
     - name: Modify the SSH config to include the auth signed HostCertificate
       notify: Restart SSH daemon # Requires teleport_lib
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         regexp: '^HostCertificate'
-        line: "HostCertificate /etc/ssh/{{ ansible_hostname }}-cert.pub"
+        line: "HostCertificate /etc/ssh/{{ ansible_hostname }}-ident-cert.pub"
 
     - name: Get the SSH CA from our cluster
       ansible.builtin.copy:
@@ -110,3 +93,7 @@
         path: "/etc/ssh/sshd_config"
         regexp: "^TrustedUserCAKeys"
         line: "TrustedUserCAKeys /etc/ssh/teleport_openssh_ca.pub"
+
+    - name: Cleanup
+      ansible.builtin.include_tasks:
+        file: cleanup.yml

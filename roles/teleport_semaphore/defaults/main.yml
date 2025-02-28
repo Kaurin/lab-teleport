@@ -1,0 +1,5 @@
+teleport_semaphore_auth_host_type_map:
+  kube:
+    tctl_exec_prefix: "kubectl exec -n teleport-cluster -ti deployment/teleport-cluster-auth -- "
+  node:
+    tctl_exec_prefix: ""

@@ -1,0 +1,14 @@
+- name: Wait for Teleport to become ready
+  ansible.builtin.uri:
+    url: "https://{{ domain_name }}/webapi/ping"
+    return_content: true
+  register: url_response
+  until:
+    - url_response.status == 200
+    - url_response.json is defined
+    - url_response.json.cluster_name == domain_name
+  failed_when: >
+    url_response.status not in [200] or
+    (url_response.status == 200 and url_response.json is defined and url_response.json.cluster_name not in [domain_name])
+  retries: 600
+  delay: 1

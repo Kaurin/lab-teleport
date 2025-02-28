@@ -1,0 +1,8 @@
+- name: Create the Teleport roles using CRs
+  kubernetes.core.k8s:
+    template: k8s-cr-teleport-roles.yaml.j2
+
+- name: Create the Teleport-admin user using CR
+  notify: Reset teleport-admin user
+  kubernetes.core.k8s:
+    template: k8s-cr-teleport-admin-user.yaml.j2

@@ -1,13 +1,15 @@
 ---
+- name: Include the teleport_semaphore role
+  ansible.builtin.include_role:
+    name: teleport_semaphore
+
 - name: Stat the teleport token file
   register: teleport_token_file
   ansible.builtin.stat:
     path: /etc/teleport.token
 
 - name: If teleport token file does not exist
-  when:
-    - not teleport_token_file.stat.exists
-    - "'nodes_ssh_agent' in group_names"
+  when: not teleport_token_file.stat.exists
   block:
     - name: Set random token value
       ansible.builtin.set_fact:
@@ -15,9 +17,9 @@
 
     - name: Issue node token
       changed_when: true
-      delegate_to: teleport
+      delegate_to: "{{ teleport_executor }}"
       ansible.builtin.command:
-        cmd: "tctl tokens add --type=node --value {{ token }}"
+        cmd: "{{ teleport_exec_prefix }} tctl tokens add --type=node --value {{ token }}"
 
     - name: Place token file
       ansible.builtin.copy:
@@ -27,7 +29,11 @@
         owner: root
         group: root
 
-    - name: Join node (Agent)
+    - name: Include the common role
+      ansible.builtin.include_role:
+        name: common
+
+    - name: Join node
       changed_when: true
       notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:

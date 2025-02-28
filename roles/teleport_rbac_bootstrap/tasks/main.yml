@@ -1,39 +1,11 @@
-- name: Teleport RBAC bootstrap
-  delegate_to: teleport
+- name: Include the teleport_semaphore role
+  ansible.builtin.include_role:
+    name: teleport_semaphore
+
+- name: Run tctl operations anb/or kube CR ops
+  delegate_to: "{{ teleport_executor }}"
   run_once: true
   block:
-    - name: Create the Teleport objects dir
-      ansible.builtin.file:
-        path: /root/teleport-objects
-        state: directory
-        mode: "0755"
-        owner: root
-
-    - name: Copy the teleport object files to the teleport host
-      loop:
-        - cmc-editor.yaml
-        - cmc.yaml
-        - host-certifier.yaml
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "/root/teleport-objects/{{ item }}"
-        mode: "0644"
-        owner: root
-
-    - name: Create roles
-      loop:
-        - cmc-editor.yaml
-        - host-certifier.yaml
-      changed_when: true
-      ansible.builtin.command:
-        cmd: "tctl create -f /root/teleport-objects/{{ item }}"
-
-    - name: Create the Cluster Maintenance Config
-      changed_when: true
-      ansible.builtin.command:
-        cmd: "tctl create -f /root/teleport-objects/cmc.yaml"
-
-    - name: Create admin user
-      changed_when: true
-      ansible.builtin.command:
-        cmd: "tctl users add teleport-admin --roles=editor,access,cmc-editor,host-certifier,kube-admin,kube-user --logins={{ user_remote }}"
+    - name: Include the kube or node specific tasks
+      ansible.builtin.include_tasks:
+        file: "{{ teleport_semaphore_auth_host_type }}_specific.yml"

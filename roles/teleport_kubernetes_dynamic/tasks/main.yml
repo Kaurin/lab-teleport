@@ -81,28 +81,3 @@
 
     - name: Flush handlers
       ansible.builtin.meta: flush_handlers
-
-    - name: Stat the kube-admin.yaml file
-      register: kube_admin_file
-      ansible.builtin.stat:
-        path: /root/kube-admin.yaml
-
-    - name: Block for copying and applying roles
-      when: not kube_admin_file.stat.exists
-      block:
-        - name: Copy the kube roles
-          loop:
-            - kube-admin.yaml
-            - kube-user.yaml
-          ansible.builtin.copy:
-            dest: "/root/{{ item }}"
-            mode: "0644"
-            src: "{{ item }}"
-
-        - name: Apply the roles
-          changed_when: true
-          loop:
-            - kube-admin.yaml
-            - kube-user.yaml
-          ansible.builtin.command:
-            cmd: tctl create -f /root/{{ item }}

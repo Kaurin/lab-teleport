@@ -1,0 +1,18 @@
+- name: Fail if teleport_semaphore_auth_host is not set
+  when: teleport_semaphore_auth_host is not defined
+  ansible.builtin.fail:
+    msg: Set the teleport_semaphore_auth_host to an ansible inventory host value
+
+- name: Fail if teleport_semaphore_auth_host_type is not set
+  when: teleport_semaphore_auth_host_type is not defined or
+        ( teleport_semaphore_auth_host_type != "node" and teleport_semaphore_auth_host_type != "kube" )
+  ansible.builtin.fail:
+    msg: |
+      Set the teleport_semaphore_auth_host_type to one of:
+        * kube
+        * node
+
+- name: Set executor facts
+  ansible.builtin.set_fact:
+    teleport_executor: "{{ teleport_semaphore_auth_host }}"
+    teleport_exec_prefix: "{{ teleport_semaphore_auth_host_type_map[teleport_semaphore_auth_host_type].tctl_exec_prefix }}"

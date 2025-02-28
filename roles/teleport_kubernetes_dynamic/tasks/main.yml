@@ -1,117 +1,131 @@
 ---
-- name: Stat the teleport token file
-  register: teleport_token_file
-  ansible.builtin.stat:
-    path: /etc/teleport.token
 
-- name: If teleport token file does not exist
-  when: not teleport_token_file.stat.exists
+
+- name: Block for the teleport_kubernetes_dynamic group
+  when: "'teleport_kubernetes_dynamic' in group_names"
   block:
-    - name: Set random token value
-      ansible.builtin.set_fact:
-        token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
 
-    - name: Issue kube token
-      changed_when: true
-      delegate_to: teleport
-      ansible.builtin.command:
-        cmd: "tctl tokens add --type=kube --value {{ token }}"
+    - name: Stat the teleport token file
+      register: teleport_token_file
+      ansible.builtin.stat:
+        path: /etc/teleport.token
 
-    - name: Place token file
-      ansible.builtin.copy:
-        dest: /etc/teleport.token
-        content: "{{ token }}"
-        mode: "0600"
-        owner: root
-        group: root
+    - name: If teleport token file does not exist
+      when: not teleport_token_file.stat.exists
+      block:
+        - name: Set random token value
+          ansible.builtin.set_fact:
+            token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
 
-    - name: Join kube
-      changed_when: true
+        - name: Issue kube token
+          changed_when: true
+          delegate_to: teleport
+          ansible.builtin.command:
+            cmd: "tctl tokens add --type=kube --value {{ token }}"
+
+        - name: Place token file
+          ansible.builtin.copy:
+            dest: /etc/teleport.token
+            content: "{{ token }}"
+            mode: "0600"
+            owner: root
+            group: root
+
+        - name: Join kube
+          changed_when: true
+          notify: Restart Teleport # teleport_lib role required in play
+          ansible.builtin.command:
+            cmd: >
+              teleport configure
+                --roles kube
+                --output file:///etc/teleport.yaml
+                --token /etc/teleport.token
+                --proxy {{ domain_name }}:443
+
+    - name: Configure teleport
       notify: Restart Teleport # teleport_lib role required in play
-      ansible.builtin.command:
-        cmd: >
-          teleport configure
-            --roles kube
-            --output file:///etc/teleport.yaml
-            --token /etc/teleport.token
-            --proxy {{ domain_name }}:443
-
-- name: Configure teleport
-  notify: Restart Teleport # teleport_lib role required in play
-  ansible.builtin.blockinfile:
-    path: /etc/teleport.yaml
-    mode: "0600"
-    block: |
-      kubernetes_service:
-        enabled: "yes"
-        resources:
-        - labels:
-            "*": "*"
-
-- name: Flush handlers (Restart Teleport)
-  ansible.builtin.meta: flush_handlers
-
-- name: Stat kubeconfig
-  register: stat_kubeconfig
-  ansible.builtin.stat:
-    path: /root/kubeconfig
-
-- name: If kubeconfig does not exist
-  when: not stat_kubeconfig.stat.exists
-  block:
-    - name: Get the kubeconfig script
-      ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/gravitational/teleport/v{{ teleport_version }}/examples/k8s-auth/get-kubeconfig.sh
-        dest: /root/get-kubeconfig.sh
-        mode: "0700"
-
-    - name: Run the kubeconfig script
-      changed_when: true
-      ansible.builtin.command:
-        chdir: /root
-        cmd: /root/get-kubeconfig.sh
-
-- name: Slurp kubeconfig
-  register: slurp_kubeconfig
-  ansible.builtin.slurp:
-    src: /root/kubeconfig
-
-- name: Tasks delegated to teleport
-  delegate_to: teleport
-  block:
-    - name: Create kube_cluster.yaml
-      register: task_create_kube_cluster_yaml
-      ansible.builtin.copy:
-        dest: /root/kube_cluster.yaml
+      ansible.builtin.blockinfile:
+        path: /etc/teleport.yaml
         mode: "0600"
-        content: |
-          kind: kube_cluster
-          version: v3
-          metadata:
-            name: mycluster
-          spec:
-            kubeconfig: {{ slurp_kubeconfig.content }}
+        block: |
+          kubernetes_service:
+            enabled: "yes"
+            resources:
+            - labels:
+                "*": "*"
 
-    - name: Apply kube_cluster.yaml # noqa: no-handler
-      when: task_create_kube_cluster_yaml.changed
-      changed_when: true
-      ansible.builtin.command:
-        cmd: tctl create /root/kube_cluster.yaml
+    - name: Flush handlers (Restart Teleport)
+      ansible.builtin.meta: flush_handlers
 
-    # TODO: make idempotent
-    - name: Copy the kube roles
-      loop:
-        - kube-admin.yaml
-        - kube-user.yaml
-      ansible.builtin.copy:
-        dest: "/root/{{ item }}"
-        mode: "0644"
-        src: "{{ item }}"
+    - name: Stat kubeconfig
+      register: stat_kubeconfig
+      ansible.builtin.stat:
+        path: /root/kubeconfig
 
-    - name: Apply the roles # noqa: no-handler
-      changed_when: true
-      loop:
-        - kube-admin.yaml
-        - kube-user.yaml
-      ansible.builtin.command:
-        cmd: tctl create -f /root/{{ item }}
+    - name: If kubeconfig does not exist
+      when: not stat_kubeconfig.stat.exists
+      block:
+        - name: Get the kubeconfig script
+          ansible.builtin.get_url:
+            url: https://raw.githubusercontent.com/gravitational/teleport/v{{ teleport_version }}/examples/k8s-auth/get-kubeconfig.sh
+            dest: /root/get-kubeconfig.sh
+            mode: "0700"
+
+        - name: Run the kubeconfig script
+          changed_when: true
+          ansible.builtin.command:
+            chdir: /root
+            cmd: /root/get-kubeconfig.sh
+
+    - name: Slurp kubeconfig
+      register: slurp_kubeconfig
+      ansible.builtin.slurp:
+        src: /root/kubeconfig
+
+    - name: Tasks delegated to teleport
+      delegate_to: teleport
+      block:
+        - name: Create kube_cluster.yaml
+          register: task_create_kube_cluster_yaml
+          ansible.builtin.copy:
+            dest: /root/kube_cluster.yaml
+            mode: "0600"
+            content: |
+              kind: kube_cluster
+              version: v3
+              metadata:
+                name: mycluster
+              spec:
+                kubeconfig: {{ slurp_kubeconfig.content }}
+
+        - name: Apply kube_cluster.yaml # noqa: no-handler
+          when: task_create_kube_cluster_yaml.changed
+          changed_when: true
+          ansible.builtin.command:
+            cmd: tctl create /root/kube_cluster.yaml
+
+
+        - name: Stat the kube-admin.yaml file
+          register: kube_admin_file
+          ansible.builtin.stat:
+            path: /root/kube-admin.yaml
+
+        - name: Block for copying and applying roles
+          when: not kube_admin_file.stat.exists
+          block:
+            - name: Copy the kube roles
+              loop:
+                - kube-admin.yaml
+                - kube-user.yaml
+              ansible.builtin.copy:
+                dest: "/root/{{ item }}"
+                mode: "0644"
+                src: "{{ item }}"
+
+            - name: Apply the roles # noqa: no-handler
+              changed_when: true
+              loop:
+                - kube-admin.yaml
+                - kube-user.yaml
+              ansible.builtin.command:
+                cmd: tctl create -f /root/{{ item }}

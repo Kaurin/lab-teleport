@@ -10,28 +10,27 @@ Teleport deployments created with this repository are not meant for production u
 
 # Prerequisites
 
-* You know what Teleport is, and its many different ways of being deployed.
-* Some terraform knowledge is required
-* Some ansible knowledge is required
-* General Linux system administrator knowledge
-
-# Requirements
-
-* Teleport Enterprise, and `license.pem` in the root of this git repository
-* Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available, like KVM on Linux or hvf on MacOS
+* Linux host which supports qemu virtualization through libvirt
+* Lots of RAM to facilitate virtual machines TODO: how much ram?
+* Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available. KVM for Linux
 * Host must have teleport installed for `tsh` / `tctl` use on your workstation
-* DNS and SSL
+* Bridged network on the host with the bridge interface under the name `br0`
+* You know what Teleport is, and some of its many different ways of being deployed.
+* Teleport Enterprise. `license.pem` should be placed in the root of this git repository
+* DNS and TLS:
   * If this is a public lab (accessible from the internet)
       * Use the `acme` config in your `teleport.yaml`
       * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160` (assuming home lab behind an internet-facing router)
   * If this is a private lab (not accessible from the internet)
+    * You will need your own hosted domain
     * Use one of the [lego supported](https://go-acme.github.io/lego/dns/) DNS providers. CloudFlare example is in `inventory/hosts.yml`
       * DNS one of:
         * Privately hosted so it intercepts/rewrites `*.yourdomain.com` to `192.168.0.160`
         * Publicly hosted where it resolves `*.yourdomain.com` and `yourdomain.com` to `192.168.0.160`
-        * Hosts file manipulation, but I don't like this approach
-* Bridged network on the host with the bridge interface under the name `br0`
-* Lots of RAM to facilitate virtual machines TODO: how much ram?
+        * Hosts file manipulation (No plans to implement- it would require deploying the hosts file on all deployed components and the workstation)
+* Some terraform knowledge is required
+* Some ansible knowledge is required
+* General Linux system administrator knowledge
 
 # Usage instructions
 
@@ -62,7 +61,7 @@ mkdir -p group_vars/all
 touch group_vars/all/main.yml
 ```
 
-Edit the `group_vars/all/main.yml` file. You can find the vars that should be overridden in the `inventory/hosts.yml` file.
+Create/edit the `group_vars/all/main.yml` file. You can find the vars that should be overridden in the `inventory/hosts.yml` file.
 
 ### Run the acme-lego playbook (once)
 
@@ -71,6 +70,7 @@ Skip this part if your Teleport environment will be reachable from the internet,
 This playbook will make the letsencrypt cert available on the workstation host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
 
 Note: You will get a prompt `BECOME password:`. This is prompting you for your sudo password.
+Note: You can set the ansible variable `letsencrypt_working_environment_choice` to `staging` if you want to perform trial runs which have much more relaxed rate limiting.
 
 If your workstation sudo is passwordless
 
@@ -120,13 +120,13 @@ pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 This provisions teleport and should be *mostly* idempotent to run
 
 ```bash
-pipenv run ansible-playbook main_kubernetes_dynamic.yml -vv
+pipenv run ansible-playbook main_kube_dynamic.yml -vv
 ```
 
 This destroys the environment
 
 ```bash
-pipenv run ansible-playbook main_kubernetes_dynamic.yml -vv -e terraform_destroy=true
+pipenv run ansible-playbook main_kube_dynamic.yml -vv -e terraform_destroy=true
 ```
 
 ### teleport-cluster deployed on a k3s cluster

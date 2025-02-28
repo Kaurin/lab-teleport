@@ -22,7 +22,8 @@
     - teleport_cluster_helm
 
 - name: Helm install teleport-kube-agent
-  hosts: nodes_k3s_teleport_agent
+  hosts:
+    - nodes_k3s_teleport_agent
   roles:
     - teleport_lib
     - teleport_kube_agent_helm
@@ -32,6 +33,9 @@
   roles:
     - teleport_lib
   tasks:
+    - name: Sleep 20 seconds
+      ansible.builtin.pause:
+        seconds: 20
     - name: Reset teleport-admin user
       changed_when: true
       ansible.builtin.command:

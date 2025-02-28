@@ -1,5 +1,4 @@
-
-clusterName: {{ domain_name }}
+clusterName: "{{ domain_name }}"
 acme: false
 authentication:
   type: local
@@ -14,12 +13,21 @@ licenseSecretName: license
 operator:
   enabled: true
 
+# Leaving this here in case I want to disable it so I can test a separate agent managing kube
+# auth:
+#   teleportConfig:
+#     kubernetes_service:
+#       enabled: "no"
+
 proxy:
   service:
     type: ClusterIP
 
 ingress:
   enabled: false
+
+tls:
+  existingSecretName: "teleport-https"
 
 log:
   level: DEBUG

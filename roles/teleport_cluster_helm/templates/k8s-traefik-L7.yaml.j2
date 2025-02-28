@@ -1,0 +1,55 @@
+# Following this advice: https://github.com/gravitational/teleport/discussions/13006#discussioncomment-4589306
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: teleport-insecure-https
+  namespace: teleport-cluster
+spec:
+  insecureSkipVerify: true
+
+# Better HTTPS by Milos
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: better-https
+  namespace: teleport-cluster
+spec:
+  headers:
+    frameDeny: true
+    browserXssFilter: true
+    customFrameOptionsValue: sameorigin
+    stsIncludeSubdomains: true
+    stsPreload: true
+    stsSeconds: 63072000
+    contentTypeNosniff: true
+    accessControlMaxAge: 100
+    addVaryHeader: true
+    referrerPolicy: strict-origin-when-cross-origin
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: teleport-cluster
+  namespace: teleport-cluster
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: HostRegexp(`{{ domain_name }}`, `{subdomain:[a-zA-Z0-9-]+}.{{ domain_name }}`, `{subdomain:[a-zA-Z0-9-]+}teleport.cluster.local`)
+      middlewares:
+        - name: better-https
+      services:
+        - name: teleport-cluster
+          kind: Service
+          scheme: https
+          passHostHeader: true
+          port: 443
+          serversTransport: teleport-insecure-https
+  tls:
+    secretName: teleport-https
+    domains:
+      - main: "{{ domain_name }}"
+        sans:
+          - "*.{{ domain_name }}"

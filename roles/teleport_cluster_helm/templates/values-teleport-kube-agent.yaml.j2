@@ -1,9 +1,13 @@
-roles: "kube,app,discovery"
+# kube-cluster will handle kube discovery
+# roles: "kube,app,discovery"
+roles: "app,discovery"
 proxyAddr: "teleport.dood.ie:443"
 enterprise: true
 joinParams:
   method: "kubernetes"
   tokenName: "teleport-kube-agent-token"
-kubeClusterName: agent-discovery
+kubeClusterName: "{{ inventory_hostname }}"
 updater:
   enabled: true
+log:
+  level: DEBUG

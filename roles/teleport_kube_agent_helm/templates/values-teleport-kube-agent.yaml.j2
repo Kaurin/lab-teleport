@@ -1,13 +1,20 @@
 roles: "kube,app,discovery"
-proxyAddr: "teleport.dood.ie:443"
+
+proxyAddr: "{{ domain_name }}:443"
+
 enterprise: true
+
 joinParams:
   method: "kubernetes"
   tokenName: "{{ inventory_hostname }}"
+
 kubeClusterName: "{{ inventory_hostname }}"
+
 updater:
   enabled: true
 
+log:
+  level: DEBUG
 
 # Below is needed for JKWS joining via helm chart as a workaround, for now. See: https://github.com/gravitational/teleport/issues/36116#issuecomment-2090877802
 extraEnv:

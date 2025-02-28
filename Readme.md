@@ -128,3 +128,27 @@ This destroys the environment
 ```bash
 pipenv run ansible-playbook main_kubernetes_dynamic.yml -vv -e terraform_destroy=true
 ```
+
+### teleport-cluster deployed on a k3s cluster
+
+This playbook will deploy:
+* 1 K3s Cluster which will host `teleport-cluster` and `teleport-kube-agent` helm charts
+* 2 K3s Clusters which will host the `teleport-kube-agent` and join the `teleport-cluster` from the bulletpoint above
+
+You can control whether you want an L4 or L7 traefik-based LB (IngressRouteTCP vs IngressRoute respectively).
+Use the `teleport_cluster_helm_lb_mode=L4` or `L7`. **Defaults to L4** because it's more performant.
+
+Note:
+I also included a HTTPS tightening middleware (L7), and tightened TLSOptions for L7 and L4 deployments.
+This is completely irrelevant to Teleport and can be ripped out if needed.
+
+Deploy with:
+```bash
+pipenv run ansible-playbook main_teleport_kube_agent.yml -vv
+```
+
+This destroys the environment
+
+```bash
+pipenv run ansible-playbook main_teleport_kube_agent.yml -vv -e terraform_destroy=true
+```

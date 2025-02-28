@@ -79,12 +79,7 @@
         line: 'PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin'
 
 - name: Block for hosts requiring Teleport installed
-  when:
-    - teleport_exists.rc != 0
-    - >
-      inventory_hostname == "teleport"
-      or 'nodes_ssh_agent' in group_names
-      or 'teleport_kubernetes_dynamic' in group_names
+  when: teleport_exists.rc != 0
   block:
     - name: Wait for cloud init to finish
       community.general.cloud_init_data_facts:

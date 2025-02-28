@@ -14,6 +14,7 @@
   roles:
     - teleport_lib
     - k3s_install
+    - helm_hello_world
 
 - name: Helm install teleport-cluster
   hosts: nodes_k3s_teleport_cluster

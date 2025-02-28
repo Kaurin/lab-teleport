@@ -1,0 +1,7 @@
+- name: Install the hello-world helm chart
+  kubernetes.core.helm:
+    name: hello-world
+    chart_repo_url: https://helm.github.io/examples
+    chart_ref: hello-world
+    release_namespace: hello-world
+    create_namespace: true

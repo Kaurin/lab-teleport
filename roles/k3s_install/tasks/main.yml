@@ -1,58 +1,76 @@
-- name: Block for the k3s_install host candidates
-  when: >
-    'teleport_kubernetes_dynamic' in group_names
-    or 'nodes_k3s_teleport_cluster' in group_names
-    or 'nodes_k3s_teleport_agent' in group_names
+- name: Stat the k3s config file
+  register: k3s_config
+  ansible.builtin.stat:
+    path: /etc/rancher/k3s/k3s.yaml
+
+- name: If k3s config does not exist
+  when: not k3s_config.stat.exists
   block:
-    - name: Stat the k3s config file
-      register: k3s_config
-      ansible.builtin.stat:
-        path: /etc/rancher/k3s/k3s.yaml
+    - name: Downloads the k3s install script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /root/k3s.sh
+        mode: "0777"
 
-    - name: If k3s config does not exist
-      when: not k3s_config.stat.exists
-      block:
-        - name: Downloads the k3s install script
-          ansible.builtin.get_url:
-            url: https://get.k3s.io
-            dest: /root/k3s.sh
-            mode: "0777"
+    - name: Install k3s
+      changed_when: true
+      ansible.builtin.command:
+        cmd: /root/k3s.sh
 
-        - name: Install k3s
-          changed_when: true
-          ansible.builtin.command:
-            cmd: /root/k3s.sh
+- name: Install python3-kubernetes
+  ansible.builtin.package:
+    name: python3-kubernetes # Ubuntu for now
 
-    - name: Install python3-kubernetes
-      ansible.builtin.package:
-        name: python3-kubernetes # Ubuntu for now
+- name: Create the .kube in root's homedir
+  ansible.builtin.file:
+    dest: /root/.kube
+    state: directory
+    mode: "0700"
 
-    - name: Create the .kube in root's homedir
-      ansible.builtin.file:
-        dest: /root/.kube
-        state: directory
-        mode: "0700"
+- name: Link kubeconfig to root's homedir
+  ansible.builtin.file:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /root/.kube/config
+    state: link
 
-    - name: Link kubeconfig to root's homedir
-      ansible.builtin.file:
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: /root/.kube/config
-        state: link
+- name: Customize traefik
+  ansible.builtin.copy:
+    dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    mode: "0600"
+    content: |
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChartConfig
+      metadata:
+        name: traefik
+        namespace: kube-system
+      spec:
+        valuesContent: |-
+          logs:
+            general:
+              level: "DEBUG"
+            access:
+              enabled: true
 
-    - name: Customize traefik
-      ansible.builtin.copy:
-        dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
-        mode: "0600"
-        content: |
-          apiVersion: helm.cattle.io/v1
-          kind: HelmChartConfig
-          metadata:
-            name: traefik
-            namespace: kube-system
-          spec:
-            valuesContent: |-
-              logs:
-                general:
-                  level: "DEBUG"
-                access:
-                  enabled: true
+- name: Check if helm exists
+  failed_when: false
+  changed_when: false
+  register: helm_exists
+  ansible.builtin.command:
+    cmd: which helm
+
+- name: Download the Helm install script
+  when: helm_exists.rc != 0
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: /root/get_helm.sh
+    mode: '0700'
+
+- name: Install Helm
+  when: helm_exists.rc != 0
+  changed_when: true
+  register: teleport_install
+  until: "teleport_install is not failed"
+  retries: 30
+  delay: 1
+  ansible.builtin.command:
+    cmd: /root/get_helm.sh

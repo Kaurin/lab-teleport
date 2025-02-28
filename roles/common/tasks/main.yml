@@ -99,6 +99,9 @@
     - name: Install teleport
       changed_when: true
       register: teleport_install # Useful for debugging
+      until: "teleport_install is not failed"
+      retries: 4 # Even if we wait for cloud-init to finish, apt sometimes runs in the background
+      delay: 1
       ansible.builtin.shell:
         executable: /bin/bash
         cmd: "/root/teleport_install.sh {{ teleport_version }} enterprise"

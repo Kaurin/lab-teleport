@@ -1,0 +1,103 @@
+# This whole tasks definition should already be delegated to a single node which hosts the teleport-cluster helm chart.
+
+- name: Stat the bot token file
+  register: stat_bot_token
+  ansible.builtin.stat:
+    path: /root/temporary_bot_token.txt
+
+- name: One time setup of machineID Bot
+  when: not stat_bot_token.stat.exists
+  run_once: true
+  block:
+    - name: Install teleport binaries
+      ansible.builtin.include_role:
+        name: common
+
+    - name: Search for the auth pod(s)
+      register: auth_pods
+      kubernetes.core.k8s_info:
+        kind: Pod
+        label_selectors:
+          - app.kubernetes.io/component = auth
+
+    - name: Set random token value
+      ansible.builtin.set_fact:
+        bot_token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+
+    - name: Create the Bot token and host-certifier role
+      kubernetes.core.k8s:
+        template: k8s-bot-cr.yaml.j2
+
+    - name: Create the Teleport MachineID bot
+      kubernetes.core.k8s_exec:
+        namespace: teleport-cluster
+        pod: "{{ auth_pods.resources[0].metadata.name }}"
+        command: "tctl bots add --token={{ bot_token }} --roles=editor,host-certifier temporary_bot"
+
+    - name: Create token file as a flag to ignore this block if the file is present
+      ansible.builtin.copy:
+        dest: /root/temporary_bot_token.txt
+        content: "{{ bot_token }}"
+        mode: "0600"
+
+    - name: Create the machineID directory structure
+      ansible.builtin.file:
+        path: /root/machine-id-temp/output
+        recurse: true
+        mode: "0700"
+        owner: root
+        group: root
+
+    - name: Create the bot config
+      ansible.builtin.copy:
+        dest: /root/machine-id-temp/tbot.yaml
+        mode: "0600"
+        owner: root
+        group: root
+        content: |
+          version: v2
+          proxy_server: {{ domain_name }}:443
+          oneshot: true
+          onboarding:
+            join_method: token
+            token: {{ bot_token }}
+          storage:
+            type: directory
+            path: /root/machine-id-temp
+          outputs:
+          - type: identity
+            destination:
+              type: directory
+              path: /root/machine-id-temp/output
+
+    - name: Run tbot in oneshot mode
+      changed_when: true
+      ansible.builtin.command:
+        cmd: tbot -c /root/machine-id-temp/tbot.yaml start
+
+# The section below runs for each of the kube clusters
+# The previous section had run_once
+- name: Stat the ident file
+  register: stat_ident_key
+  ansible.builtin.stat:
+    path: /root/{{ ansible_hostname }}-ident"
+
+- name: One time auth sign
+  when: not stat_ident_key.stat.exists
+  block:
+    - name: Create the Agentless node object from file
+      changed_when: true
+      ansible.builtin.command:
+        cmd: >-
+          tctl --auth-server {{ domain_name }}:443 -i /root/machine-id-temp/output/identity
+          create -f '/root/{{ ansible_hostname }}.yaml'
+
+    - name: Run tctl to sign the host
+      changed_when: true
+      ansible.builtin.command:
+        cmd: >-
+          tctl --auth-server {{ domain_name }}:443 -i /root/machine-id-temp/output/identity
+            auth sign
+            --host  {{ ansible_default_ipv4.address }},{{ ansible_hostname }},{{ agentless_name_uuid }}
+            --format openssh
+            --out /root/{{ ansible_hostname }}-ident

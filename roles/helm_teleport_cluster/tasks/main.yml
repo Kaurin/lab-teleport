@@ -61,10 +61,6 @@
   kubernetes.core.k8s:
     template: "k8s-traefik-{{  helm_teleport_cluster_lb_mode | upper }}.yaml.j2"
 
-- name: Create the Teleport roles using CRs
-  kubernetes.core.k8s:
-    template: k8s-cr-teleport-roles.yaml.j2
-
 - name: Create the Teleport join token using CRs
   kubernetes.core.k8s:
     template: k8s-cr-teleport-join-token.yaml.j2
@@ -78,7 +74,3 @@
     release_namespace: teleport-kube-agent
     create_namespace: true
     values: "{{ lookup('template', 'values-teleport-kube-agent.yaml.j2') | from_yaml }}"
-
-- name: Create the Teleport-admin user using CR
-  kubernetes.core.k8s:
-    template: k8s-cr-teleport-admin-user.yaml.j2

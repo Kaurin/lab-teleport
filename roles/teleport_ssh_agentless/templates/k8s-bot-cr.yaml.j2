@@ -1,0 +1,30 @@
+apiVersion: resources.teleport.dev/v2
+kind: TeleportProvisionToken
+metadata:
+  name: {{ bot_token }}
+  namespace: teleport-cluster
+spec:
+  join_method: token
+  bot_name: temporary_bot
+  roles:
+    - Bot
+---
+# The host-certifier role is also found in the RBAC bootstrap ansible role (kube)
+# however, we need it now, and it won't hurt as this is a CR.
+# The RBAC bootstrap role will be idempotent about this
+apiVersion: resources.teleport.dev/v1
+kind: TeleportRoleV7
+metadata:
+  name: host-certifier
+  namespace: teleport-cluster
+spec:
+  allow:
+    rules:
+      - resources:
+          - host_cert
+        verbs:
+          - list
+          - create
+          - read
+          - update
+          - delete

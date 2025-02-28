@@ -1,0 +1,26 @@
+- name: Remove the teleport and teleport-ent packages
+  ansible.builtin.package:
+    state: absent
+    name:
+      - teleport
+      - teleport-ent
+
+- name: Remove the MachineID bot
+  delegate_to: "{{ teleport_executor }}"
+  run_once: true
+  kubernetes.core.k8s_exec:
+    namespace: teleport-cluster
+    pod: "{{ auth_pods.resources[0].metadata.name }}"
+    command: "tctl bots rm temporary_bot"
+
+- name: Remove the teleport files and directories
+  loop:
+    - /usr/local/bin/tbot
+    - /usr/local/bin/tctl
+    - /usr/local/bin/teleport
+    - /usr/local/bin/tsh
+    - /usr/local/bin/fdpass-teleport
+    - /root/machine-id-temp
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent

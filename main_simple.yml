@@ -5,21 +5,47 @@
   roles:
     - tf_simple
 
-- name: Teleport cluster and agents setup
+- name: Setup which applies to agents and the cluster
   hosts:
     - teleport
     - nodes_ssh_agent
-    - nodes_ssh_agentless
   roles:
     - teleport_lib
     - common
+
+- name: Cluster node setup
+  hosts:
     - teleport
+  roles:
+    - teleport_lib
+    - teleport
+
+- name: Agent nodes setup
+  hosts:
+    - nodes_ssh_agent
+  vars:
+    teleport_semaphore_auth_host: teleport
+    teleport_semaphore_auth_host_type: node
+  roles:
+    - teleport_lib
     - teleport_ssh_agent
+
+- name: Agentless nodes setup
+  hosts:
+    - nodes_ssh_agentless
+  vars:
+    teleport_semaphore_auth_host: teleport
+    teleport_semaphore_auth_host_type: node
+  roles:
+    - teleport_lib
     - teleport_ssh_agentless
     # - teleport_ssh_agentless_simple # Broken on most distros
 
 - name: Teleport RBAC Bootstrap
   hosts: teleport
+  vars:
+    teleport_semaphore_auth_host: teleport
+    teleport_semaphore_auth_host_type: node
   roles:
     - teleport_lib
     - teleport_rbac_bootstrap

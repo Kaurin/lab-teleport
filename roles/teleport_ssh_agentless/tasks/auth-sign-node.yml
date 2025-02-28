@@ -1,0 +1,13 @@
+- name: Create the Agentless node object from file
+  changed_when: true
+  ansible.builtin.command:
+    cmd: "tctl create -f '/root/{{ ansible_hostname }}.yaml'"
+
+- name: Tctl auth sign
+  changed_when: true
+  ansible.builtin.command:
+    cmd: >
+      tctl auth sign
+        --host  {{ ansible_default_ipv4.address }},{{ ansible_hostname }},{{ agentless_name_uuid }}
+        --format openssh
+        --out /root/{{ ansible_hostname }}-ident

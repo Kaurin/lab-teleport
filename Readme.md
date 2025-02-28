@@ -92,23 +92,24 @@ This repo will provide some "archetypal" deployments. They can also be used as s
 
 Here are some of the archetypes:
 
-### Simple
+### simple.yml
 
-Teleport cluster on a single VM and two SSH nodes
+Teleport cluster on a single VM and 4 SSH nodes:
+ * 2 agentless
+ * 2 joined via agent
 
-This provisions teleport and should be *mostly* idempotent to run
 
+To deploy:
 ```bash
 pipenv run ansible-playbook main_simple.yml -vv
 ```
 
-This destroys the environment
-
+This destroys the environment:
 ```bash
 pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 ```
 
-### Kubernetes dynamic
+### kubernetes_dynamic.yml
 
 * Teleport cluster on a single VM,
 * k3s VM:
@@ -129,17 +130,18 @@ This destroys the environment
 pipenv run ansible-playbook main_kube_dynamic.yml -vv -e terraform_destroy=true
 ```
 
-### teleport-cluster deployed on a k3s cluster
+### main_kube_helm.yml
 
 This playbook will deploy:
-* 1 K3s Cluster which will host `teleport-cluster` and `teleport-kube-agent` helm charts
-* 2 K3s Clusters which will host the `teleport-kube-agent` and join the `teleport-cluster` from the bulletpoint above
+* 1 k3s single-node Cluster which will host `teleport-cluster` and `teleport-kube-agent` helm charts
+* 2 k3s single-node Clusters which will host the `teleport-kube-agent` and join the `teleport-cluster` from the bulletpoint above
+* All 3 k3s nodes will join the `teleport-cluster` as SSH nodes with either agent or agentless (defaults to agentless)
 
 You can control whether you want an L4 or L7 traefik-based LB (IngressRouteTCP vs IngressRoute respectively).
-Use the `helm_teleport_cluster_lb_mode=L4` or `L7`. **Defaults to L4** because it's more performant.
+Use the `helm_teleport_cluster_lb_mode=L4` or `L7`. **Defaults to `L4`** because it's more performant.
 
 Note:
-I also included a HTTPS tightening middleware (L7), and tightened TLSOptions for L7 and L4 deployments.
+Also included is HTTPS tightening middleware (L7), and tightened TLSOptions for L4 deployments.
 This is completely irrelevant to Teleport and can be ripped out if needed.
 
 Deploy with:
@@ -152,3 +154,8 @@ This destroys the environment
 ```bash
 pipenv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
 ```
+
+## On the `semaphore` Role
+Used to set a few helper variables for roles such as `teleport_ssh_agent`, `teleport_ssh_agentless` and `teleport_rbac_bootstrap`.
+
+Included at the very beginning of those roles to ensure semaphore variables are set, such as what type of Teleport deployment is in question (`kube` vs `node`) and on which node is Teleport-cluster installed.

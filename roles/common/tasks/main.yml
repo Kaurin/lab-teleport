@@ -1,6 +1,6 @@
 - name: Disable the tmpfs /tmp mount
   # We need to disable this on systems with small amounts of ram
-  when: ansible_facts['distribution'] == "Fedora"
+  when: ansible_distribution == "Fedora"
   retries: 10
   delay: 1
   ansible.builtin.service:
@@ -23,6 +23,14 @@
     checksum: "sha256:{{ lookup('ansible.builtin.url', 'https://cdn.teleport.dev/install-v' + teleport_version + '.sh.sha256').split('  ')[0] }}"
     dest: /root/teleport_install.sh
     mode: '0755'
+
+- name: Teleport install script debug output
+  # https://github.com/gravitational/teleport/pull/51036
+  ansible.builtin.lineinfile:
+    path: /root/teleport_install.sh
+    search_string: 'set -euo pipefail'
+    line: 'set -xeuo pipefail'
+
 
 - name: Patch for distros which don't have a repo
   # https://github.com/gravitational/teleport/pull/51036
@@ -59,8 +67,8 @@
 - name: Centos and Rocky PATH override block
   # For some reason those cloud distros don't have `/usr/local/bin` in the PATH....
   when: |
-    ansible_facts['distribution'] == "CentOS"
-    or ansible_facts['distribution'] == "Rocky"
+    ansible_distribution == "CentOS"
+    or ansible_distribution == "Rocky"
   block:
     - name: Add path to /etc/environment
       notify: Reset SSH Connection
@@ -78,12 +86,24 @@
       or 'nodes_ssh_agent' in group_names
       or 'teleport_kubernetes_dynamic' in group_names
   block:
+    - name: Wait for cloud init to finish
+      community.general.cloud_init_data_facts:
+        filter: status
+      register: cloud_init_state
+      until: "cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and not cloud_init_state.cloud_init_data_facts.status.v1.stage"
+      retries: 120
+      delay: 1
+
+    # TODO
+    # - name: Rhel activation
+    #   changed_when: true
+    #   when: ansible_distribution == "RedHat"
+    #   ansible.builtin.command:
+    #     cmd: rhc connect --organization <your-org> --activation-key <activation-key>
+
     - name: Install teleport
       changed_when: true
-      register: teleport_install
-      until: "teleport_install is not failed"
-      retries: 4
-      delay: 1
+      register: teleport_install # Useful for debugging
       ansible.builtin.shell:
         executable: /bin/bash
         cmd: "/root/teleport_install.sh {{ teleport_version }} enterprise"

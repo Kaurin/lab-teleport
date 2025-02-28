@@ -19,14 +19,14 @@
   hosts: nodes_k3s_teleport_cluster
   roles:
     - teleport_lib
-    - teleport_cluster_helm
+    - helm_teleport_cluster
 
 - name: Helm install teleport-kube-agent
   hosts:
     - nodes_k3s_teleport_agent
   roles:
     - teleport_lib
-    - teleport_kube_agent_helm
+    - helm_teleport_kube_agent
 
 - name: Reset teleport-admin user
   hosts: nodes_k3s_teleport_cluster

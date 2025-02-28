@@ -136,7 +136,7 @@ This playbook will deploy:
 * 2 K3s Clusters which will host the `teleport-kube-agent` and join the `teleport-cluster` from the bulletpoint above
 
 You can control whether you want an L4 or L7 traefik-based LB (IngressRouteTCP vs IngressRoute respectively).
-Use the `teleport_cluster_helm_lb_mode=L4` or `L7`. **Defaults to L4** because it's more performant.
+Use the `helm_teleport_cluster_lb_mode=L4` or `L7`. **Defaults to L4** because it's more performant.
 
 Note:
 I also included a HTTPS tightening middleware (L7), and tightened TLSOptions for L7 and L4 deployments.
@@ -144,11 +144,11 @@ This is completely irrelevant to Teleport and can be ripped out if needed.
 
 Deploy with:
 ```bash
-pipenv run ansible-playbook main_teleport_kube_agent.yml -vv
+pipenv run ansible-playbook main_kube_helm.yml -vv
 ```
 
 This destroys the environment
 
 ```bash
-pipenv run ansible-playbook main_teleport_kube_agent.yml -vv -e terraform_destroy=true
+pipenv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
 ```

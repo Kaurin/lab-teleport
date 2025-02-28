@@ -1,0 +1,1 @@
+helm_teleport_cluster_lb_mode: L4 # L4 or L7. Controls TCPRoute versus IngressRoute respectively

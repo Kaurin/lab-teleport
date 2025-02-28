@@ -83,7 +83,7 @@
 
 - name: Create the traefik resources for teleport-cluster (L4 or L7 load balancer)
   kubernetes.core.k8s:
-    template: "k8s-traefik-{{  teleport_cluster_helm_lb_mode | upper }}.yaml.j2"
+    template: "k8s-traefik-{{  helm_teleport_cluster_lb_mode | upper }}.yaml.j2"
 
 - name: Create the Teleport roles using CRs
   kubernetes.core.k8s:

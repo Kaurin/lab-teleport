@@ -27,6 +27,9 @@
 
 - name: Rbac the Teleport host
   hosts: teleport
+  vars:
+    teleport_semaphore_auth_host: teleport
+    teleport_semaphore_auth_host_type: node
   roles:
     - teleport_lib
     - teleport_rbac_bootstrap

@@ -11,11 +11,9 @@ Teleport deployments created with this repository are not meant for production u
 # Prerequisites
 
 * Linux host which supports qemu virtualization through libvirt
-* Lots of RAM to facilitate virtual machines TODO: how much ram?
+* Enough RAM to facilitate virtual machines TODO: how much ram?
 * Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available. KVM for Linux
-* Host must have teleport installed for `tsh` / `tctl` use on your workstation
 * Bridged network on the host with the bridge interface under the name `br0`
-* You know what Teleport is, and some of its many different ways of being deployed.
 * Teleport Enterprise. `license.pem` should be placed in the root of this git repository
 * DNS and TLS:
   * If this is a public lab (accessible from the internet)
@@ -31,6 +29,8 @@ Teleport deployments created with this repository are not meant for production u
 * Some terraform knowledge is required
 * Some ansible knowledge is required
 * General Linux system administrator knowledge
+* You know what Teleport is, and some of its many different ways of being deployed.
+* Optional / recommended: Teleport binaries installed on your workstation
 
 # Usage instructions
 
@@ -111,6 +111,7 @@ pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 
 ### kubernetes_dynamic.yml
 
+Deploys the following:
 * Teleport cluster on a single VM,
 * k3s VM:
   * The Teleport agent is *not* deployed onto the k3s cluster

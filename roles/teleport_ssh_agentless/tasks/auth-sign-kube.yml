@@ -1,12 +1,12 @@
 # This whole tasks definition should already be delegated to a single node which hosts the teleport-cluster helm chart.
 
 - name: Stat the bot token file
-  register: stat_bot_token
+  register: stat_temporary_bot_flag
   ansible.builtin.stat:
-    path: /root/temporary_bot_token.txt
+    path: /root/temporary_bot_provisioned
 
 - name: One time setup of machineID Bot
-  when: not stat_bot_token.stat.exists
+  when: not stat_temporary_bot_flag.stat.exists
   run_once: true
   block:
     - name: Install teleport binaries
@@ -33,12 +33,6 @@
         namespace: teleport-cluster
         pod: "{{ auth_pods.resources[0].metadata.name }}"
         command: "tctl bots add --token={{ bot_token }} --roles=editor,host-certifier temporary_bot"
-
-    - name: Create token file as a flag to ignore this block if the file is present
-      ansible.builtin.copy:
-        dest: /root/temporary_bot_token.txt
-        content: "{{ bot_token }}"
-        mode: "0600"
 
     - name: Create the machineID directory structure
       ansible.builtin.file:
@@ -74,6 +68,14 @@
       changed_when: true
       ansible.builtin.command:
         cmd: tbot -c /root/machine-id-temp/tbot.yaml start
+
+    - name: Create a flag so we know this block already ran
+      ansible.builtin.file:
+        path: /root/temporary_bot_provisioned
+        mode: "0600"
+        owner: root
+        group: root
+        state: touch
 
 # The section below runs for each of the kube clusters
 # The previous section had run_once

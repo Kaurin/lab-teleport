@@ -66,7 +66,6 @@
   delegate_to: teleport
   block:
     - name: Create kube_cluster.yaml
-      register: task_create_kube_cluster_yaml
       notify: Apply kube_cluster.yaml
       ansible.builtin.copy:
         dest: /root/kube_cluster.yaml
@@ -75,7 +74,7 @@
           kind: kube_cluster
           version: v3
           metadata:
-            name: mycluster
+            name: {{ domain_name }}
           spec:
             kubeconfig: {{ slurp_kubeconfig.content }}
 

@@ -8,19 +8,19 @@
 - name: Tasks for all hosts
   hosts: teleport, teleport_kubernetes_dynamic
   roles:
-    - teleport_lib
+    - util_common
     - teleport_install
 
 - name: Teleport host setup
   hosts: teleport
   roles:
-    - teleport_lib
+    - util_common
     - teleport
 
 - name: Kubernetes cluster setup
   hosts: teleport_kubernetes_dynamic
   roles:
-    - teleport_lib
+    - util_common
     - k3s_install
     - teleport_kubernetes_crd
     - teleport_kubernetes_dynamic
@@ -31,5 +31,5 @@
     teleport_semaphore_auth_host: teleport
     teleport_semaphore_auth_host_type: node
   roles:
-    - teleport_lib
+    - util_common
     - teleport_rbac_bootstrap

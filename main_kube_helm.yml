@@ -12,21 +12,21 @@
     - nodes_k3s_teleport_cluster
     - nodes_k3s_teleport_agent
   roles:
-    - teleport_lib
+    - util_common
     - k3s_install
     - helm_hello_world
 
 - name: Helm and tctl/tbot install teleport-cluster
   hosts: nodes_k3s_teleport_cluster
   roles:
-    - teleport_lib
+    - util_common
     - helm_teleport_cluster
 
 - name: Helm install teleport-kube-agent
   hosts:
     - nodes_k3s_teleport_agent
   roles:
-    - teleport_lib
+    - util_common
     - helm_teleport_kube_agent
 
 - name: Join SSH on all 3 nodes
@@ -37,7 +37,7 @@
     teleport_semaphore_auth_host: teleport-k3s-cluster-1
     teleport_semaphore_auth_host_type: kube
   roles:
-    - teleport_lib
+    - util_common
     - teleport_ssh_agentless # Can also use teleport_ssh_agent
 
 - name: Teleport RBAC Bootstrap
@@ -46,5 +46,5 @@
     teleport_semaphore_auth_host: teleport-k3s-cluster-1
     teleport_semaphore_auth_host_type: kube
   roles:
-    - teleport_lib
+    - util_common
     - teleport_rbac_bootstrap

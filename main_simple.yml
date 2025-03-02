@@ -10,14 +10,14 @@
     - teleport
     - nodes_ssh_agent
   roles:
-    - teleport_lib
+    - util_common
     - teleport_install
 
 - name: Cluster node setup
   hosts:
     - teleport
   roles:
-    - teleport_lib
+    - util_common
     - teleport
 
 - name: Agent nodes setup
@@ -27,7 +27,7 @@
     teleport_semaphore_auth_host: teleport
     teleport_semaphore_auth_host_type: node
   roles:
-    - teleport_lib
+    - util_common
     - teleport_ssh_agent
 
 - name: Agentless nodes setup
@@ -37,7 +37,7 @@
     teleport_semaphore_auth_host: teleport
     teleport_semaphore_auth_host_type: node
   roles:
-    - teleport_lib
+    - util_common
     - teleport_ssh_agentless
     # - teleport_ssh_agentless_simple # Broken on most distros
 
@@ -47,5 +47,5 @@
     teleport_semaphore_auth_host: teleport
     teleport_semaphore_auth_host_type: node
   roles:
-    - teleport_lib
+    - util_common
     - teleport_rbac_bootstrap

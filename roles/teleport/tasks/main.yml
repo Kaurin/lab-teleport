@@ -20,14 +20,14 @@
               renew --days 10
 
     - name: Create cert dir
-      notify: Restart Teleport # teleport_lib role required in play
+      notify: Restart Teleport # util_common role required in play
       ansible.builtin.file:
         path: "{{ lego_path }}"
         state: directory
         mode: "0700"
 
     - name: Drop the cert/key and license file off
-      notify: Restart Teleport # teleport_lib role required in play
+      notify: Restart Teleport # util_common role required in play
       vars:
         lego_file_mapping:
           - local_file: "{{ lego_path_local }}/certificates/_.{{ domain_name }}.crt"
@@ -43,7 +43,7 @@
         mode: "0600"
 
     - name: Copy teleport config
-      notify: Restart Teleport # teleport_lib role required in play
+      notify: Restart Teleport # util_common role required in play
       ansible.builtin.template:
         src: teleport.yaml.j2
         dest: /etc/teleport.yaml

@@ -35,7 +35,7 @@
 
     - name: Join node
       changed_when: true
-      notify: Restart Teleport # teleport_lib role required in play
+      notify: Restart Teleport # util_common role required in play
       ansible.builtin.command:
         cmd: >
           teleport node configure

@@ -67,14 +67,14 @@
         content: "{{ agentless_slurped_cert.content | b64decode }}"
 
     - name: Modify the SSH config to include the auth signed HostKey
-      notify: Restart SSH daemon # Requires teleport_lib
+      notify: Restart SSH daemon # Requires util_common
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         regexp: '^HostKey'
         line: "HostKey /etc/ssh/{{ ansible_hostname }}-ident"
 
     - name: Modify the SSH config to include the auth signed HostCertificate
-      notify: Restart SSH daemon # Requires teleport_lib
+      notify: Restart SSH daemon # Requires util_common
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         regexp: '^HostCertificate'
@@ -88,7 +88,7 @@
         owner: root
 
     - name: Configure SSHD to trust the Teleport Cluster CA
-      notify: Restart SSH daemon # Requires teleport_lib role
+      notify: Restart SSH daemon # Requires util_common role
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         regexp: "^TrustedUserCAKeys"

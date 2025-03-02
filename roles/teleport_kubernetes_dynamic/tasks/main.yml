@@ -28,7 +28,7 @@
         group: root
 
     - name: Configure teleport
-      notify: Restart Teleport # teleport_lib role required in play
+      notify: Restart Teleport # util_common role required in play
       ansible.builtin.template:
         src: teleport.yaml.j2
         dest: /etc/teleport.yaml

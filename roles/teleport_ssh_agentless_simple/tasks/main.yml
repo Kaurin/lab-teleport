@@ -1,4 +1,5 @@
 ---
+# TODO should also support semaphore like the teleport_ssh_agentless role
 - name: Stat the teleport token file
   register: teleport_token_file
   ansible.builtin.stat:
@@ -29,7 +30,7 @@
 
     - name: Join node
       changed_when: true
-      notify: Restart Teleport # teleport_lib role required in play
+      notify: Restart Teleport # util_common role required in play
       ansible.builtin.command:
         cmd: >
           teleport join openssh

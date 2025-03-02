@@ -27,7 +27,7 @@
         owner: root
         group: root
 
-    - name: Join node (Agent)
+    - name: Join node
       changed_when: true
       notify: Restart Teleport # teleport_lib role required in play
       ansible.builtin.command:
@@ -37,4 +37,5 @@
             --proxy-server {{ domain_name }}:443
             --join-method token
             --token {{ token_agentless }}
-            --labels env=dev
+            --labels hostname={{ ansible_hostname }}
+            --labels commonkey=commonvalue

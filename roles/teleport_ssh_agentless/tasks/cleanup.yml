@@ -5,6 +5,7 @@
       - teleport
       - teleport-ent
 
+# Only needed for kube deployments. Bot is not used on node deployments.
 - name: Remove the MachineID bot
   delegate_to: "{{ teleport_executor }}"
   run_once: true

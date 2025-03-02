@@ -29,9 +29,9 @@
         owner: root
         group: root
 
-    - name: Include the common role
+    - name: Include the teleport_install role
       ansible.builtin.include_role:
-        name: common
+        name: teleport_install
 
     - name: Join node
       changed_when: true

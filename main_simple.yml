@@ -11,7 +11,7 @@
     - nodes_ssh_agent
   roles:
     - teleport_lib
-    - common
+    - teleport_install
 
 - name: Cluster node setup
   hosts:

@@ -9,7 +9,7 @@
   hosts: teleport, teleport_kubernetes_dynamic
   roles:
     - teleport_lib
-    - common
+    - teleport_install
 
 - name: Teleport host setup
   hosts: teleport

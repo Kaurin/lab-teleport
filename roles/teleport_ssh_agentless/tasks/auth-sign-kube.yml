@@ -11,7 +11,7 @@
   block:
     - name: Install teleport binaries
       ansible.builtin.include_role:
-        name: common
+        name: teleport_install
 
     - name: Search for the auth pod(s)
       register: auth_pods

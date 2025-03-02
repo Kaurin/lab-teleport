@@ -8,6 +8,7 @@
 - name: Remove the MachineID bot
   delegate_to: "{{ teleport_executor }}"
   run_once: true
+  when: auth_pods is defined
   kubernetes.core.k8s_exec:
     namespace: teleport-cluster
     pod: "{{ auth_pods.resources[0].metadata.name }}"

@@ -7,3 +7,11 @@
 
 - name: Gather facts for first time
   ansible.builtin.setup:
+
+- name: Wait for cloud init to finish
+  community.general.cloud_init_data_facts:
+    filter: status
+  register: cloud_init_state
+  until: "cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and not cloud_init_state.cloud_init_data_facts.status.v1.stage"
+  retries: 120
+  delay: 1

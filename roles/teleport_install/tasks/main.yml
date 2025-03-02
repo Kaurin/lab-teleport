@@ -81,14 +81,6 @@
 - name: Block for hosts requiring Teleport installed
   when: teleport_exists.rc != 0
   block:
-    - name: Wait for cloud init to finish
-      community.general.cloud_init_data_facts:
-        filter: status
-      register: cloud_init_state
-      until: "cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and not cloud_init_state.cloud_init_data_facts.status.v1.stage"
-      retries: 120
-      delay: 1
-
     # TODO
     # - name: Rhel activation
     #   changed_when: true
@@ -98,7 +90,7 @@
 
     - name: Install teleport
       changed_when: true
-      register: teleport_install # Useful for debugging
+      register: teleport_install
       until: "teleport_install is not failed"
       retries: 4 # Even if we wait for cloud-init to finish, apt sometimes runs in the background
       delay: 1

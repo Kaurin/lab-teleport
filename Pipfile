@@ -9,8 +9,9 @@ cryptography = "*"
 jmespath = "*"
 kubernetes = "*"
 
+[requires]
+python_version = "3.13"
+
 [dev-packages]
 ansible-lint = "*"
 
-[requires]
-python_version = "3.13"

@@ -210,3 +210,7 @@ ssh_config_teleport
 
 # Teleport license
 license.pem
+
+
+# Ansible lock file?
+.ansible/.lock

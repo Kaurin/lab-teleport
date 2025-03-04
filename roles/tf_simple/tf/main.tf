@@ -61,7 +61,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "eth0" : {
               "addresses" : ["192.168.0.160/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -87,7 +87,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "eth0" : {
               "addresses" : ["192.168.0.${num}/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -113,7 +113,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "eth0" : {
               "addresses" : ["192.168.0.${num}/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {

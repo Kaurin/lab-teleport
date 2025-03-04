@@ -4,9 +4,59 @@
 
 - name: Wait 600 seconds for target connection to become reachable/usable
   ansible.builtin.wait_for_connection:
+    delay: "{{ conn_wait_first_run | ternary(5, 0) }}" # Delay 5 seconds on first run, otherwise don't delay
+
+- name: Set the conn_wait_first_run to false
+  ansible.builtin.set_fact:
+    conn_wait_first_run: false
 
 - name: Gather facts for first time
+  retries: 300
+  delay: 1
   ansible.builtin.setup:
+
+- name: Set up the os_release_id fact
+  ansible.builtin.set_fact:
+    os_release_id: |
+      {{ lookup('ansible.builtin.file', '/etc/os-release') |
+      regex_search('^ID=(.+)$', '\1') |
+      first  }}
+    # os_release_id: "{{ lookup('ansible.builtin.file', '/etc/os-release') }}" # for example: amzn
+
+- name: Fail
+  ansible.builtin.fail:
+    msg: "{{ os_release_id }}"
+
+- name: Fail if FIPS set and distro unsupported
+  # Only the repo-supported distros can be FIPS installed: https://goteleport.com/docs/installation/#package-repositories
+  when: |
+    teleport_fips and  not (
+      ansible_distribution == "Amazon" or
+      ansible_distribution == "CentOS" or
+      ansible_distribution == "Debian" or
+      ansible_distribution == "RedHat" or
+      ansible_distribution == "Ubuntu" or
+      ansible_distribution == "SLES"
+      ansible_distribution == "SLED"
+    )
+  ansible.builtin.fail:
+    msg: "The teleport_fips flag is true, and an unsupported distro is attempted: {{ ansible_distribution }}"
+
+
+# - name: Fail if FIPS set and distro unsupported
+#   # Only the repo-supported distros can be FIPS installed: https://goteleport.com/docs/installation/#package-repositories
+#   when: |
+#     teleport_fips and  not (
+#       ansible_distribution == "Amazon" or
+#       ansible_distribution == "CentOS" or
+#       ansible_distribution == "Debian" or
+#       ansible_distribution == "RedHat" or
+#       ansible_distribution == "Ubuntu" or
+#       ansible_distribution == "SLES"
+#       ansible_distribution == "SLED"
+#     )
+#   ansible.builtin.fail:
+#     msg: "The teleport_fips flag is true, and an unsupported distro is attempted: {{ ansible_distribution }}"
 
 - name: Wait for cloud init to finish
   community.general.cloud_init_data_facts:

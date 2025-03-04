@@ -1,0 +1,15 @@
+- name: Install yum-util
+  ansible.builtin.package:
+    name: yum-utils
+
+- name: Fedora repo - Custom
+  ansible.builtin.yum_repository:
+    name: "fedora-{{ item.type }}-{{ item.subtype }}-custom"
+    file: "fedora-{{ item.type }}-{{ item.subtype }}-custom"
+    description: "Fedora: {{ item.type }} / {{ item.subtype }} - Custom"
+    baseurl: "https://yum.releases.teleport.dev/{{ ansible_distribution_major_version }}/$VERSION_ID/Teleport/%{_arch}/${TELEPORT_CHANNEL?}/teleport.repo"
+    state: present
+    gpgcheck: true
+  loop:
+    - { type: "releases", subtype: "Everything", suffix: "os" }
+    - { type: "updates", subtype: "Everything", suffix: "" }

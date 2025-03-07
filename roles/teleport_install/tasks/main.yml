@@ -15,30 +15,6 @@
   ansible.builtin.command:
     cmd: which teleport
 
-- name: Download the Teleport install script
-  ansible.builtin.get_url:
-    # URL example: /tmp/teleport-YQf9rzNvEV/teleport-v16.4.12-linux-amd64-bin.tar.gz
-    url: "https://cdn.teleport.dev/install-v{{ teleport_version }}.sh"
-    # Checksum example: //cdn.teleport.dev/teleport-ent-v16.4.12-linux-amd64-bin.tar.gz.sha256
-    checksum: "sha256:{{ lookup('ansible.builtin.url', 'https://cdn.teleport.dev/install-v' + teleport_version + '.sh.sha256').split('  ')[0] }}"
-    dest: /root/teleport_install.sh
-    mode: '0755'
-
-- name: Teleport install script debug output
-  # https://github.com/gravitational/teleport/pull/51036
-  ansible.builtin.lineinfile:
-    path: /root/teleport_install.sh
-    search_string: 'set -euo pipefail'
-    line: 'set -xeuo pipefail'
-
-
-- name: Patch for distros which don't have a repo
-  # https://github.com/gravitational/teleport/pull/51036
-  ansible.builtin.lineinfile:
-    path: /root/teleport_install.sh
-    search_string: '  $SUDO "$TEMP_DIR/teleport/install"'
-    line: '  $SUDO "$TEMP_DIR/teleport${TELEPORT_SUFFIX}/install"'
-
 - name: Centos 8 fix
   # https://serverfault.com/questions/1161816/mirrorlist-centos-org-no-longer-resolve
   when:
@@ -76,34 +52,38 @@
         dest: /etc/environment
         state: present
         regexp: '^PATH=\/usr\/local\/bin'
-        line: 'PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin'
+        line: "PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin"
 
-- name: Block for hosts requiring Teleport installed
-  when: teleport_exists.rc != 0
-  block:
-    # TODO
-    # - name: Rhel activation
-    #   changed_when: true
-    #   when: ansible_distribution == "RedHat"
-    #   ansible.builtin.command:
-    #     cmd: rhc connect --organization <your-org> --activation-key <activation-key>
+- name: Slurp os-release
+  register: slurp_os_release
+  ansible.builtin.slurp:
+    src: /etc/os-release
 
-    - name: Install teleport
-      changed_when: true
-      register: teleport_install
-      until: "teleport_install is not failed"
-      retries: 4 # Even if we wait for cloud-init to finish, apt sometimes runs in the background
-      delay: 1
-      ansible.builtin.shell:
-        executable: /bin/bash
-        cmd: "/root/teleport_install.sh {{ teleport_version }} enterprise"
+  # This regex will match both ID="fedora" and ID=centos (quotes vs non-quotes)
+- name: Set up the os_release_id fact
+  ansible.builtin.set_fact:
+    os_release_id: >-
+      {{ slurp_os_release.content | b64decode |
+      regex_search('^ID="?(\w+)"?$', '\1', multiline=True) | first }}
 
-    - name: Stat teleport systemd service file
-      register: teleport_systemd_service_file
-      ansible.builtin.stat:
-        path: /etc/systemd/system/teleport.service
+- name: Fail if FIPS set and distro unsupported
+  # Only the repo-supported distros can be FIPS installed: https://goteleport.com/docs/installation/#package-repositories
+  when: |
+    teleport_fips and  not (
+      os_release_id == "amzn" or
+      os_release_id == "centos" or
+      os_release_id == "debian" or
+      os_release_id == "rhel" or
+      os_release_id == "sles" or
+      os_release_id == "ubuntu"
+    )
+  ansible.builtin.fail:
+    msg: "The teleport_fips flag is true, and an unsupported distro is attempted: {{ os_release_id }}"
 
-    - name: Install the systemd file when needed
-      when: not teleport_systemd_service_file.stat.exists
-      changed_when: true
-      ansible.builtin.command: teleport install systemd -o /etc/systemd/system/teleport.service
+- name: Set the teleport_channel fact
+  ansible.builtin.set_fact:
+    teleport_channel: "stable/v{{ teleport_version | regex_findall('^(\\d+)\\.') | first }}" # For example v17
+
+- name: Fips or script install
+  ansible.builtin.include_tasks:
+    file: "{{ teleport_fips | ternary('fips-install-' ~ (os_release_id | lower) ~ '.yml', 'script-install.yml') }}" # For example fips-install-centos.yml

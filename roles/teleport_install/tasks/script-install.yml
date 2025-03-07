@@ -1,0 +1,49 @@
+- name: Block for hosts requiring Teleport installed
+  when: teleport_exists.rc != 0
+  block:
+    # TODO
+    # - name: Rhel activation
+    #   changed_when: true
+    #   when: ansible_distribution == "RedHat"
+    #   ansible.builtin.command:
+    #     cmd: rhc connect --organization <your-org> --activation-key <activation-key>
+
+    - name: Download the Teleport install script
+      ansible.builtin.get_url:
+        url: "https://cdn.teleport.dev/install.sh"
+        dest: /root/teleport_install.sh
+        mode: "0755"
+
+    - name: Patch for distros which don't have a repo
+      # https://github.com/gravitational/teleport/pull/51036
+      ansible.builtin.lineinfile:
+        path: /root/teleport_install.sh
+        search_string: '  $SUDO "$TEMP_DIR/teleport/install"'
+        line: '  $SUDO "$TEMP_DIR/teleport${TELEPORT_SUFFIX}/install"'
+
+    - name: Teleport install script debug output
+      # https://github.com/gravitational/teleport/pull/51036
+      ansible.builtin.lineinfile:
+        path: /root/teleport_install.sh
+        search_string: "set -euo pipefail"
+        line: "set -xeuo pipefail"
+
+    - name: Install teleport
+      changed_when: true
+      register: teleport_install
+      until: teleport_install is not failed
+      retries: 10 # Even if we wait for cloud-init to finish, apt sometimes runs in the background
+      delay: 1
+      ansible.builtin.shell:
+        executable: /bin/bash
+        cmd: "/root/teleport_install.sh {{ teleport_version }} enterprise"
+
+    - name: Stat teleport systemd service file
+      register: teleport_systemd_service_file
+      ansible.builtin.stat:
+        path: /etc/systemd/system/teleport.service
+
+    - name: Install the systemd file when needed
+      when: not teleport_systemd_service_file.stat.exists
+      changed_when: true
+      ansible.builtin.command: teleport install systemd -o /etc/systemd/system/teleport.service

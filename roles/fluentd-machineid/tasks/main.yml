@@ -1,0 +1,19 @@
+- name: Add example bot
+  changed_when: true
+  register: command_add_bot
+  ansible.builtin.command:
+    cmd: tctl bots add example
+
+- name: Create bot work dir
+  ansible.builtin.file:
+    path: /var/lib/teleport/bot
+    state: directory
+    mode: "0700"
+    owner: "{{ user_remote }}"
+
+- name: Config file of tbot
+  ansible.builtin.template:
+    dest: /etc/tbot.yml
+    src: tbot.yaml.j2
+    mode: "0600"
+    owner: "{{ user_remote }}"

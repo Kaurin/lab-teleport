@@ -9,6 +9,7 @@ auth_service:
   authentication:
     # "off" is deprecated in v15 and beyond
     # "optional" is deprecated in v16 and beyond
+    local_auth: "{{ teleport_fips | ternary('false', 'true') }}"
     second_factor: "on"
     webauthn:
       rp_id: {{ domain_name }}

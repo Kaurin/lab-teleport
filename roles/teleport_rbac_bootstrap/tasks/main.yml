@@ -2,6 +2,12 @@
   ansible.builtin.include_role:
     name: teleport_semaphore
 
+- name: Set client tools auto-update
+  changed_when: true
+  delegate_to: "{{ teleport_executor }}"
+  ansible.builtin.command:
+    cmd: "{{ teleport_exec_prefix }} tctl autoupdate client-tools enable"
+
 - name: Run tctl operations anb/or kube CR ops
   delegate_to: "{{ teleport_executor }}"
   run_once: true

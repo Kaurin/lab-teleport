@@ -5,6 +5,9 @@
   connection: local
   become: false
   tasks:
+    - name: Ansible facts
+      ansible.builtin.setup:
+
     - name: Install lego
       become: "{{ ansible_distribution | string != 'MacOSX' }}" # Disable sudo for MacOSX
       ansible.builtin.package:

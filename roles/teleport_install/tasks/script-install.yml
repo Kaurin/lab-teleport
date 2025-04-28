@@ -14,13 +14,6 @@
         dest: /root/teleport_install.sh
         mode: "0755"
 
-    - name: Patch for distros which don't have a repo
-      # https://github.com/gravitational/teleport/pull/51036
-      ansible.builtin.lineinfile:
-        path: /root/teleport_install.sh
-        search_string: '  $SUDO "$TEMP_DIR/teleport/install"'
-        line: '  $SUDO "$TEMP_DIR/teleport${TELEPORT_SUFFIX}/install"'
-
     - name: Teleport install script debug output
       # https://github.com/gravitational/teleport/pull/51036
       ansible.builtin.lineinfile:

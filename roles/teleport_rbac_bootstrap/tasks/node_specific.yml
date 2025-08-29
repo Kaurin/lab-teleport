@@ -7,35 +7,47 @@
 
 - name: Copy the teleport object files to the teleport host
   loop:
-    - cmc-editor.yaml
+    - role-cmc-editor.yaml
+    - role-host-certifier.yaml
+    - role-kube-admin.yaml
+    - role-kube-user.yaml
     - cmc.yaml
-    - host-certifier.yaml
-    - kube-admin.yaml
-    - kube-user.yaml
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "/root/teleport-objects/{{ item }}"
     mode: "0644"
     owner: root
 
-- name: Create roles
+- name: Template the admin user
   loop:
-    - cmc-editor.yaml
-    - host-certifier.yaml
-    - kube-admin.yaml
-    - kube-user.yaml
+    - user-teleport-admin.yaml
+  ansible.builtin.template:
+    dest: "/root/teleport-objects/{{ item }}"
+    src: "{{ item }}.j2"
+    mode: "0755"
+
+- name: Check if admin user needs to be reset (before creating it)
+  changed_when: false
+  failed_when: false
+  register: tctl_get_admin_user
+  ansible.builtin.command:
+    cmd: "tctl get user/teleport-admin"
+
+
+- name: Create the objects
+  loop:
+    - role-cmc-editor.yaml
+    - role-host-certifier.yaml
+    - role-kube-admin.yaml
+    - role-kube-user.yaml
+    - cmc.yaml
+    - user-teleport-admin.yaml
   changed_when: true
   ansible.builtin.command:
     cmd: "tctl create -f /root/teleport-objects/{{ item }}"
 
-- name: Create the Cluster Maintenance Config
+- name: Reset admin user
+  when: tctl_get_admin_user.rc != 0
   changed_when: true
   ansible.builtin.command:
-    cmd: "tctl create -f /root/teleport-objects/cmc.yaml"
-
-- name: Create admin user
-  changed_when: true
-  ansible.builtin.command:
-    cmd: "tctl users add teleport-admin
-      --roles=editor,access,cmc-editor,host-certifier,kube-admin,kube-user
-      --logins={{ user_remote }},root"
+    cmd: "tctl users reset teleport-admin"

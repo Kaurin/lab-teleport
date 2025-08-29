@@ -1,0 +1,16 @@
+kind: user
+metadata:
+  name: teleport-admin
+spec:
+  roles:
+    - editor
+    - access
+    - cmc-editor
+    - host-certifier
+    - kube-admin
+    - kube-user
+  traits:
+    logins:
+      - {{ user_remote }}
+      - root
+version: v2

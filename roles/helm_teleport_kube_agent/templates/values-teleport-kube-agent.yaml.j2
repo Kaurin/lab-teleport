@@ -32,6 +32,4 @@ extraVolumes:
         - serviceAccountToken:
             path: join-sa-token
             expirationSeconds: 600
-            # `example.teleport.sh` must be replaced with the name of
-            # your Teleport cluster.
             audience: "{{ domain_name }}"

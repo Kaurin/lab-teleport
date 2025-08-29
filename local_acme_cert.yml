@@ -4,6 +4,9 @@
   hosts: 127.0.0.1
   connection: local
   become: false
+  ## In case you wish to override the domain for general-purpose use
+  # vars:
+  #   domain_name: some.domain.com
   tasks:
     - name: Ansible facts
       ansible.builtin.setup:

@@ -63,14 +63,14 @@ touch group_vars/all/main.yml
 
 Create/edit the `group_vars/all/main.yml` file. You can find the vars that should be overridden in the `inventory/hosts.yml` file.
 
-### Run the acme-lego playbook (once)
+### Run the `local_acme_cert` playbook (once)
 
 Skip this part if your Teleport environment will be reachable from the internet, and set up `acme` in your `teleport.yaml`.
 
 This playbook will make the letsencrypt cert available on the workstation host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
 
 Note: You will get a prompt `BECOME password:`. This is prompting you for your sudo password.
-Note: You can set the ansible variable `letsencrypt_working_environment_choice` to `staging` if you want to perform trial runs which have much more relaxed rate limiting.
+Note: You can set the ansible variable `letsencrypt_working_environment_choice` to `staging` if you want to perform trial runs which have much more relaxed rate limiting. The certificates are not globally trusted, though.
 
 If your workstation sudo is passwordless
 
@@ -109,6 +109,10 @@ This destroys the environment:
 pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 ```
 
+#### Addon - `main_simple_addon_leaf.yml`
+
+Provisions a leaf cluster on `teleport-node-agentless-1`. Depending on your setup, you might need to get a different cert. I use `local_acme_cert.yml` with a `vars:` override for the domain name.
+
 ### kubernetes_dynamic.yml
 
 Deploys the following:
@@ -119,14 +123,12 @@ Deploys the following:
   * Joined to the Teleport cluster with type "kube"
 * Follows (loosely) this teleport document: [Dynamic Kubernetes Cluster Registration](https://goteleport.com/docs/enroll-resources/kubernetes-access/register-clusters/dynamic-registration/) - TODO: make the playbook match the document closer
 
-This provisions teleport and should be *mostly* idempotent to run
-
+Provision teleport:
 ```bash
 pipenv run ansible-playbook main_kube_dynamic.yml -vv
 ```
 
-This destroys the environment
-
+Destroy the environment:
 ```bash
 pipenv run ansible-playbook main_kube_dynamic.yml -vv -e terraform_destroy=true
 ```
@@ -134,8 +136,8 @@ pipenv run ansible-playbook main_kube_dynamic.yml -vv -e terraform_destroy=true
 ### main_kube_helm.yml
 
 This playbook will deploy:
-* 1 k3s single-node Cluster which will host `teleport-cluster` and `teleport-kube-agent` helm charts
-* 2 k3s single-node Clusters which will host the `teleport-kube-agent` and join the `teleport-cluster` from the bulletpoint above
+* 1x k3s single-node Kubernetes cluster which will host `teleport-cluster` and `teleport-kube-agent` helm charts
+* 2x k3s single-node Kubernetes clusters which will host the `teleport-kube-agent` and join the `teleport-cluster` from the bulletpoint above
 * All 3 k3s nodes will join the `teleport-cluster` as SSH nodes with either agent or agentless (defaults to agentless)
 
 You can control whether you want an L4 or L7 traefik-based LB (IngressRouteTCP vs IngressRoute respectively).
@@ -143,15 +145,14 @@ Use the `helm_teleport_cluster_lb_mode=L4` or `L7`. **Defaults to `L4`** because
 
 Note:
 Also included is HTTPS tightening middleware (L7), and tightened TLSOptions for L4 deployments.
-This is completely irrelevant to Teleport and can be ripped out if needed.
+This is completely irrelevant to Teleport, but is a nice-to-have.
 
 Deploy with:
 ```bash
 pipenv run ansible-playbook main_kube_helm.yml -vv
 ```
 
-This destroys the environment
-
+Destroy the environment:
 ```bash
 pipenv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
 ```
@@ -160,3 +161,4 @@ pipenv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
 Used to set a few helper variables for roles such as `teleport_ssh_agent`, `teleport_ssh_agentless` and `teleport_rbac_bootstrap`.
 
 Included at the very beginning of those roles to ensure semaphore variables are set, such as what type of Teleport deployment is in question (`kube` vs `node`) and on which node is Teleport-cluster installed.
+A lot of roles make use of this helper role.

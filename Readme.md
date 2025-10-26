@@ -70,6 +70,7 @@ Skip this part if your Teleport environment will be reachable from the internet,
 This playbook will make the letsencrypt cert available on the workstation host. Reason behind having the cert on the host is that quick iteration of the guest virtual machines doesn't exhaust the letsencrypt rate limits which are pretty harsh.
 
 Note: You will get a prompt `BECOME password:`. This is prompting you for your sudo password.
+
 Note: You can set the ansible variable `letsencrypt_working_environment_choice` to `staging` if you want to perform trial runs which have much more relaxed rate limiting. The certificates are not globally trusted, though.
 
 If your workstation sudo is passwordless
@@ -84,7 +85,7 @@ If your workstation sudo requires password
 pipenv run ansible-playbook local_acme_cert.yml -vv --ask-become-pass
 ```
 
-NOTE: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
+Note: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
 
 ## Iterate using Teleport deployment archetypes
 
@@ -144,8 +145,7 @@ You can control whether you want an L4 or L7 traefik-based LB (IngressRouteTCP v
 Use the `helm_teleport_cluster_lb_mode=L4` or `L7`. **Defaults to `L4`** because it's more performant.
 
 Note:
-Also included is HTTPS tightening middleware (L7), and tightened TLSOptions for L4 deployments.
-This is completely irrelevant to Teleport, but is a nice-to-have.
+Also included is HTTPS tightening middleware (L7), and tightened TLS options for L4 deployments. This is completely irrelevant to Teleport, but is a nice-to-have.
 
 Deploy with:
 ```bash

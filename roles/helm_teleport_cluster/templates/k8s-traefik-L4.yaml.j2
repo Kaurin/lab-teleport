@@ -44,8 +44,8 @@ spec:
     - kind: Rule
       match: |
         HostSNIRegexp(`{{ domain_name }}`) ||
-        HostSNIRegexp(`{sub:.+}.{{ domain_name }}`) ||
-        HostSNIRegexp(`{sub:.+}.teleport.cluster.local`)
+        HostSNIRegexp(`^.*\.{{ domain_name }}$`) ||
+        HostSNIRegexp(`^.*\.teleport\.cluster\.local`)
       services:
         - name: teleport-cluster
           kind: Service

@@ -1,0 +1,20 @@
+[project]
+name = ""
+version = "0.0.2"
+requires-python = "==3.13.*"
+dependencies = [
+    "ansible",
+    "cryptography",
+    "jmespath",
+    "kubernetes",
+]
+
+[dependency-groups]
+dev = ["ansible-lint"]
+
+[tool.uv]
+package = false
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"

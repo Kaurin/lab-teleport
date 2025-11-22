@@ -51,7 +51,7 @@ ssh-keygen -f ~/.ssh/teleport_lab -t rsa -b 4096
 ### Sync the python (ansible) dependencies
 
 ```bash
-pipenv sync
+uv sync
 ```
 
 ### Set up Ansible variables
@@ -76,13 +76,13 @@ Note: You can set the ansible variable `letsencrypt_working_environment_choice` 
 If your workstation sudo is passwordless
 
 ```bash
-pipenv run ansible-playbook local_acme_cert.yml -vv
+uv run ansible-playbook local_acme_cert.yml -vv
 ```
 
 If your workstation sudo requires password
 
 ```bash
-pipenv run ansible-playbook local_acme_cert.yml -vv --ask-become-pass
+uv run ansible-playbook local_acme_cert.yml -vv --ask-become-pass
 ```
 
 Note: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
@@ -102,12 +102,12 @@ Teleport cluster on a single VM and 4 SSH nodes:
 
 To deploy:
 ```bash
-pipenv run ansible-playbook main_simple.yml -vv
+uv run ansible-playbook main_simple.yml -vv
 ```
 
 This destroys the environment:
 ```bash
-pipenv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
+uv run ansible-playbook main_simple.yml -vv -e terraform_destroy=true
 ```
 
 #### Addon - `main_simple_addon_leaf.yml`
@@ -126,12 +126,12 @@ Deploys the following:
 
 Provision teleport:
 ```bash
-pipenv run ansible-playbook main_kube_dynamic.yml -vv
+uv run ansible-playbook main_kube_dynamic.yml -vv
 ```
 
 Destroy the environment:
 ```bash
-pipenv run ansible-playbook main_kube_dynamic.yml -vv -e terraform_destroy=true
+uv run ansible-playbook main_kube_dynamic.yml -vv -e terraform_destroy=true
 ```
 
 ### main_kube_helm.yml
@@ -149,12 +149,12 @@ Also included is HTTPS tightening middleware (L7), and tightened TLS options for
 
 Deploy with:
 ```bash
-pipenv run ansible-playbook main_kube_helm.yml -vv
+uv run ansible-playbook main_kube_helm.yml -vv
 ```
 
 Destroy the environment:
 ```bash
-pipenv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
+uv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
 ```
 
 ## On the `semaphore` Role

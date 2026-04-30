@@ -50,6 +50,8 @@ spec:
         - name: teleport-cluster
           kind: Service
           port: 443
+          proxyProtocol:
+            version: 2
   tls:
     passthrough: true
     options:

@@ -1,10 +1,28 @@
 clusterName: "{{ domain_name }}"
+publicAddr:
+ - "{{ domain_name }}:443"
+ # TODO, implement multiple publicAddr overrides
 acme: false
 authentication:
   type: local
+  # TODO use secondFactors
   secondFactor: "on"
 
-proxyProtocol: "off"
+# Single quotes here are mandatory, otherwise helm will truthy-convert "on"/"off" to booleans, and helm chart won't like it
+proxyProtocol: '{{ "on" if helm_teleport_cluster_lb_mode | lower == "l4" else "off" }}'
+
+auth:
+  teleportConfig:
+    auth_service:
+      authentication:
+        webauthn:
+          rp_id: "{{ rp_id }}"
+
+#### Leaving this here in case I want to disable it so I can test a separate agent managing kube
+#   teleportConfig:
+#     kubernetes_service:
+#       enabled: "no"
+
 proxyListenerMode: multiplex
 
 enterprise: true
@@ -12,12 +30,6 @@ licenseSecretName: license
 
 operator:
   enabled: true
-
-# Leaving this here in case I want to disable it so I can test a separate agent managing kube
-# auth:
-#   teleportConfig:
-#     kubernetes_service:
-#       enabled: "no"
 
 proxy:
   service:

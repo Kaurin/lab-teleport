@@ -11,6 +11,10 @@ authentication:
 # Single quotes here are mandatory, otherwise helm will truthy-convert "on"/"off" to booleans, and helm chart won't like it
 proxyProtocol: '{{ "on" if helm_teleport_cluster_lb_mode | lower == "l4" else "off" }}'
 
+## Has debug tools. Shell with:
+# kubectl exec -n teleport-cluster deploy/teleport-cluster-auth -it -- /busybox/sh
+enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
+
 auth:
   teleportConfig:
     auth_service:

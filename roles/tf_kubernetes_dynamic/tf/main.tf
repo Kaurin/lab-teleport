@@ -8,6 +8,11 @@ variable "cloud_image" {
   description = "Location of the QCOW2 cloud image. For example: `/home/myuser/Downloads/Fedora-Cloud-Base-Generic.x86_64-40-1.14.qcow2`"
 }
 
+variable "eth" {
+  type        = string
+  description = "Network device (eth0, ens3, etc)"
+}
+
 variable "login_username" {
   type        = string
   description = "Default login username for the guest virtual machines"
@@ -58,7 +63,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "${var.eth}" : {
               "addresses" : ["192.168.0.160/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -83,7 +88,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "${var.eth}" : {
               "addresses" : ["192.168.0.210/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {

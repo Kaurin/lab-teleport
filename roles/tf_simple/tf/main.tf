@@ -11,6 +11,12 @@ variable "cloud_image" {
 }
 
 # Remember, this and other variables can be overriden via the ansible variables in group_vars/all/main.yml
+variable "eth" {
+  type        = string
+  description = "Network device (eth0, ens3, etc)"
+}
+
+# Remember, this and other variables can be overriden via the ansible variables in group_vars/all/main.yml
 variable "login_username" {
   type        = string
   description = "Default login username for the guest virtual machines"
@@ -61,7 +67,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "${var.eth}" : {
               "addresses" : ["192.168.0.160/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -87,7 +93,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "${var.eth}" : {
               "addresses" : ["192.168.0.${num}/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {
@@ -113,7 +119,7 @@ module "teleport_lab" {
         {
           "version" : 2
           "ethernets" : {
-            "ens3" : {
+            "${var.eth}" : {
               "addresses" : ["192.168.0.${num}/24"]
               "gateway4" : "192.168.0.1"
               "nameservers" : {

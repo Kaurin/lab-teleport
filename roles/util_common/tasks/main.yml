@@ -22,3 +22,17 @@
   until: "cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and not cloud_init_state.cloud_init_data_facts.status.v1.stage"
   retries: 120
   delay: 1
+
+- name: Centos and Rocky PATH override block
+  # For some reason those cloud distros don't have `/usr/local/bin` in the PATH....
+  when: |
+    ansible_distribution == "CentOS"
+    or ansible_distribution == "Rocky"
+  block:
+    - name: Add path to /etc/environment
+      notify: Reset SSH Connection
+      ansible.builtin.lineinfile:
+        dest: /etc/environment
+        state: present
+        regexp: '^PATH=\/usr\/local\/bin'
+        line: "PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin"

@@ -1,6 +1,4 @@
 ---
-
-
 - name: Stat the teleport token file
   register: teleport_token_file
   ansible.builtin.stat:
@@ -46,8 +44,16 @@
   when: not stat_kubeconfig.stat.exists
   block:
     - name: Get the kubeconfig script
+      failed_when: false
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/gravitational/teleport/v{{ teleport_version }}/examples/k8s-auth/get-kubeconfig.sh
+        dest: /root/get-kubeconfig.sh
+        mode: "0700"
+
+    - name: Get the kubeconfig script (alternate location)
+      failed_when: false # Note, both of these can fail, but we will error out when trying to execute
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/gravitational/teleport/v{{ teleport_version }}/k8s-auth/get-kubeconfig.sh
         dest: /root/get-kubeconfig.sh
         mode: "0700"
 

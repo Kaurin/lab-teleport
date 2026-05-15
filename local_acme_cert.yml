@@ -22,6 +22,7 @@
         state: directory
         mode: "0700"
 
+    # TODO implement publicAddr support with multiple domains
     - name: Get the cert
       changed_when: true
       environment: "{{ letsencrypt_lego_env_vars }}"

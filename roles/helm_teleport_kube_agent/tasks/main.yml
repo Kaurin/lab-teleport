@@ -11,18 +11,17 @@
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     dest: /root/get_helm.sh
-    mode: '0700'
+    mode: "0700"
 
 - name: Install Helm
   when: helm_exists.rc != 0
   changed_when: true
-  register: teleport_install
-  until: "teleport_install is not failed"
+  register: install_helm
+  until: "install_helm is not failed"
   retries: 30
   delay: 1
   ansible.builtin.command:
     cmd: /root/get_helm.sh
-
 
 - name: Grab the JWKS
   changed_when: false

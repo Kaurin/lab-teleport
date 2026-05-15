@@ -28,12 +28,12 @@
     dest: "{{ tempdir.path }}"
     remote_src: true
 
-# - name: Delete temp directory
-#   ansible.builtin.file:
-#     path: "{{ tempdir.path }}"
-#     state: absent
-
 - name: Install Teleport
   changed_when: true
   ansible.builtin.command:
     cmd: "{{ tempdir.path }}/teleport/teleport-update enable --proxy {{ domain_name }}"
+
+- name: Delete temp directory
+  ansible.builtin.file:
+    path: "{{ tempdir.path }}"
+    state: absent

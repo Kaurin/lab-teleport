@@ -23,20 +23,6 @@
       ansible.builtin.include_tasks:
         file: centos-8-search-replace.yml
 
-- name: Centos and Rocky PATH override block
-  # For some reason those cloud distros don't have `/usr/local/bin` in the PATH....
-  when: |
-    ansible_distribution == "CentOS"
-    or ansible_distribution == "Rocky"
-  block:
-    - name: Add path to /etc/environment
-      notify: Reset SSH Connection
-      ansible.builtin.lineinfile:
-        dest: /etc/environment
-        state: present
-        regexp: '^PATH=\/usr\/local\/bin'
-        line: "PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin"
-
 - name: Slurp os-release
   register: slurp_os_release
   ansible.builtin.slurp:

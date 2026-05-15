@@ -6,7 +6,7 @@
     - tf_kubernetes_dynamic
 
 - name: Tasks for all hosts
-  hosts: teleport, teleport_kubernetes_dynamic
+  hosts: teleport
   roles:
     - util_common
     - teleport_install
@@ -21,6 +21,7 @@
   hosts: teleport_kubernetes_dynamic
   roles:
     - util_common
+    - teleport_install
     - k3s_install
     - teleport_kubernetes_crd
     - teleport_kubernetes_dynamic

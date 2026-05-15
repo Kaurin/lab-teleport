@@ -5,19 +5,12 @@
   roles:
     - tf_simple
 
-- name: Setup which applies to agents and the cluster
-  hosts:
-    - teleport
-    - nodes_ssh_agent
-  roles:
-    - util_common
-    - teleport_install
-
 - name: Cluster node setup
   hosts:
     - teleport
   roles:
     - util_common
+    - teleport_install
     - teleport
 
 - name: Agent nodes setup
@@ -26,6 +19,7 @@
   vars:
     teleport_semaphore_auth_host: teleport
     teleport_semaphore_auth_host_type: node
+    teleport_install_teleport_agent: true # Needed by the teleport_install
   roles:
     - util_common
     - teleport_ssh_agent

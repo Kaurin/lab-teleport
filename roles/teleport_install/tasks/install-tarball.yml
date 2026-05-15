@@ -1,0 +1,42 @@
+# "Secret" URL filter to list only enterprise downloads: https://goteleport.com/download/all-downloads/?filter=ent
+# By default, all downloads are community ones.
+# Normally accessible from your self-hosted cluster, or cloud tenant Downloads page
+
+- name: Download and extract tarball from upstream Teleport URL
+  ansible.builtin.unarchive:
+    src: "https://cdn.teleport.dev/teleport-ent-v{{ teleport_version }}-linux-amd64-bin.tar.gz" # TODO support different arch
+    dest: "/opt/"
+    creates: "/opt/teleport"
+    remote_src: true
+
+- name: Create symbolic for Teleport binaries
+  loop:
+    - src: "/opt/teleport-ent/tbot"
+      dest: "/usr/local/bin/tbot"
+
+    - src: "/opt/teleport-ent/tctl"
+      dest: "/usr/local/bin/tctl"
+
+    - src: "/opt/teleport-ent/teleport"
+      dest: "/usr/local/bin/teleport"
+
+    - src: "/opt/teleport-ent/tsh"
+      dest: "/usr/local/bin/tsh"
+
+    - src: "/opt/teleport-ent/fdpass-teleport"
+      dest: "/usr/local/bin/fdpass-teleport"
+
+    - src: "/opt/teleport-ent/teleport-update"
+      dest: "/usr/local/bin/teleport-update"
+  ansible.builtin.file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    state: link
+
+- name: Create the /var/lib/teleport dir
+  ansible.builtin.file:
+    path: /var/lib/teleport
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root

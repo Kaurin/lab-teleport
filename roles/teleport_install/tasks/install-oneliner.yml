@@ -1,0 +1,73 @@
+- name: Centos 8 fix
+  # https://serverfault.com/questions/1161816/mirrorlist-centos-org-no-longer-resolve
+  when:
+    - ansible_distribution=="CentOS"
+    - ansible_distribution_major_version=="8"
+  block:
+    - name: Get repo names
+      changed_when: false
+      ansible.builtin.command:
+        cmd: "find /etc/yum.repos.d/ -type f -name 'CentOS-*.repo'"
+      register: repos
+
+    - name: Outer loop
+      loop:
+        - regexp: "mirror.centos.org"
+          replace: "vault.centos.org"
+        - regexp: "^#.*baseurl=http"
+          replace: "baseurl=http"
+        - regexp: "^mirrorlist=http"
+          replace: "#mirrorlist=http"
+      loop_control:
+        loop_var: outer_item
+      ansible.builtin.include_tasks:
+        file: centos-8-search-replace.yml
+
+- name: Centos and Rocky PATH override block
+  # For some reason those cloud distros don't have `/usr/local/bin` in the PATH....
+  when: |
+    ansible_distribution == "CentOS"
+    or ansible_distribution == "Rocky"
+  block:
+    - name: Add path to /etc/environment
+      notify: Reset SSH Connection
+      ansible.builtin.lineinfile:
+        dest: /etc/environment
+        state: present
+        regexp: '^PATH=\/usr\/local\/bin'
+        line: "PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin"
+
+- name: Slurp os-release
+  register: slurp_os_release
+  ansible.builtin.slurp:
+    src: /etc/os-release
+
+  # This regex will match both ID="fedora" and ID=centos (quotes vs non-quotes)
+- name: Set up the os_release_id fact
+  ansible.builtin.set_fact:
+    os_release_id: >-
+      {{ slurp_os_release.content | b64decode |
+      regex_search('^ID="?(\w+)"?$', '\1', multiline=True) | first }}
+
+- name: Fail if FIPS set and distro unsupported
+  # Only the repo-supported distros can be FIPS installed: https://goteleport.com/docs/installation/#package-repositories
+  when: |
+    teleport_fips and  not (
+      os_release_id == "amzn" or
+      os_release_id == "centos" or
+      os_release_id == "debian" or
+      os_release_id == "rhel" or
+      os_release_id == "sles" or
+      os_release_id == "ubuntu"
+    )
+  ansible.builtin.fail:
+    msg: "The teleport_fips flag is true, and an unsupported distro is attempted: {{ os_release_id }}"
+
+- name: Set the teleport_channel fact
+  ansible.builtin.set_fact:
+    teleport_channel: "stable/v{{ teleport_version | regex_findall('^(\\d+)\\.') | first }}" # For example v17
+
+- name: Fips or script install
+  ansible.builtin.include_tasks:
+    # For example fips-install-centos.yml
+    file: "{{ teleport_fips | ternary('install-oneliner-fips-' ~ (os_release_id | lower) ~ '.yml', 'install-oneliner-script.yml') }}"

@@ -1,7 +1,7 @@
 ---
 - name: Setup which applies to agents and the cluster
   hosts:
-    - teleport-node-agentless-1
+    - teleport-node-agentless-1 # Not actually agentless, we're adding a leaf cluster
   vars:
     teleport_semaphore_auth_host: teleport-node-agentless-1
     teleport_semaphore_auth_host_type: node

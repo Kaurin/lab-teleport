@@ -5,7 +5,7 @@
   vars:
     teleport_semaphore_auth_host: teleport-node-agentless-1
     teleport_semaphore_auth_host_type: node
-    domain_name: teleport-leaf1.kaurin.cc
+    domain_name: teleport.subdomain.kaurin.cc
     root_domain_name: teleport.kaurin.cc
   roles:
     - util_common
@@ -41,7 +41,7 @@
               kind: trusted_cluster
               version: v2
               metadata:
-                name: {{ domain_name }}
+                name: {{ root_domain_name }}
               spec:
                 enabled: true
                 token: "{{ token }}"

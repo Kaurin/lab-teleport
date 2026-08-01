@@ -63,10 +63,10 @@ module "teleport_lab" {
           "version" : 2
           "ethernets" : {
             "${var.eth}" : {
-              "addresses" : ["192.168.0.160/24"]
-              "gateway4" : "192.168.0.1"
+              "addresses" : ["10.84.110.160/24"]
+              "gateway4" : "10.84.110.1"
               "nameservers" : {
-                "addresses" : ["192.168.0.1", "192.168.0.2"]
+                "addresses" : ["10.84.110.1", "10.84.110.2"]
               }
             }
           }
@@ -88,10 +88,10 @@ module "teleport_lab" {
           "version" : 2
           "ethernets" : {
             "${var.eth}" : {
-              "addresses" : ["192.168.0.214/24"]
-              "gateway4" : "192.168.0.1"
+              "addresses" : ["10.84.110.214/24"]
+              "gateway4" : "10.84.110.1"
               "nameservers" : {
-                "addresses" : ["192.168.0.1", "192.168.0.2"]
+                "addresses" : ["10.84.110.1", "10.84.110.2"]
               }
             }
           }
@@ -113,10 +113,10 @@ module "teleport_lab" {
           "version" : 2
           "ethernets" : {
             "${var.eth}" : {
-              "addresses" : ["192.168.0.215/24"]
-              "gateway4" : "192.168.0.1"
+              "addresses" : ["10.84.110.215/24"]
+              "gateway4" : "10.84.110.1"
               "nameservers" : {
-                "addresses" : ["192.168.0.1", "192.168.0.2"]
+                "addresses" : ["10.84.110.1", "10.84.110.2"]
               }
             }
           }

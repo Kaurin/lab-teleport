@@ -18,13 +18,13 @@ Teleport deployments created with this repository are not meant for production u
 * DNS and TLS:
   * If this is a public lab (accessible from the internet)
       * Use the `acme` config in your `teleport.yaml`
-      * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `192.168.0.160` (assuming home lab behind an internet-facing router)
+      * Be on a public DNS that resolves to your public IP which has port `443` port-forwarded to `10.84.110.160` (assuming home lab behind an internet-facing router)
   * If this is a private lab (not accessible from the internet)
     * You will need your own hosted domain
     * Use one of the [lego supported](https://go-acme.github.io/lego/dns/) DNS providers. CloudFlare example is in `inventory/hosts.yml`
       * DNS one of:
-        * Privately hosted so it intercepts/rewrites `*.yourdomain.com` to `192.168.0.160`
-        * Publicly hosted where it resolves `*.yourdomain.com` and `yourdomain.com` to `192.168.0.160`
+        * Privately hosted so it intercepts/rewrites `*.yourdomain.com` to `10.84.110.160`
+        * Publicly hosted where it resolves `*.yourdomain.com` and `yourdomain.com` to `10.84.110.160`
         * Hosts file manipulation (No plans to implement- it would require deploying the hosts file on all deployed components and the workstation)
 * Some terraform knowledge is required
 * Some ansible knowledge is required

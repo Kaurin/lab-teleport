@@ -11,4 +11,4 @@
     url_response.status not in [200] or
     (url_response.status == 200 and url_response.json is defined and url_response.json.cluster_name not in [domain_name])
   retries: 600
-  delay: 1
+  delay: 0

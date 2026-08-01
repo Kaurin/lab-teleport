@@ -12,7 +12,7 @@
 
 - name: Gather facts for first time
   retries: 300
-  delay: 1
+  delay: 0
   ansible.builtin.setup:
 
 - name: Wait for cloud init to finish
@@ -21,7 +21,7 @@
   register: cloud_init_state
   until: "cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and not cloud_init_state.cloud_init_data_facts.status.v1.stage"
   retries: 120
-  delay: 1
+  delay: 0
 
 - name: Centos and Rocky PATH override block
   # For some reason those cloud distros don't have `/usr/local/bin` in the PATH....

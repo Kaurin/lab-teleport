@@ -19,7 +19,7 @@
       changed_when: true
       delegate_to: "{{ teleport_executor }}"
       ansible.builtin.command:
-        cmd: "{{ teleport_exec_prefix }} tctl tokens add --type=node --value {{ token }}"
+        cmd: "{{ teleport_exec_prefix }} tctl tokens add --type=node,app,db,windowsdesktop,discovery --value {{ token }}"
 
     - name: Place token file
       ansible.builtin.copy:

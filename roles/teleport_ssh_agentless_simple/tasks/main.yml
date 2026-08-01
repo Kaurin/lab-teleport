@@ -18,7 +18,7 @@
       changed_when: true
       delegate_to: teleport
       ansible.builtin.command:
-        cmd: "tctl tokens add --type=node --value {{ token_agentless }}"
+        cmd: "tctl tokens add --type=node,app,db,windowsdesktop,discovery --value {{ token_agentless }}"
 
     - name: Place token file
       ansible.builtin.copy:

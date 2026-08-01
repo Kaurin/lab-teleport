@@ -23,6 +23,7 @@
   roles:
     - util_common
     - teleport_ssh_agent
+    - teleport_vnet
 
 - name: Agentless nodes setup
   hosts:

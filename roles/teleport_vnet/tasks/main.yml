@@ -46,7 +46,7 @@
       app_service:
         enabled: true
         debug_app: false
-        mcp_demo_server: false
+        # mcp_demo_server: false
         # resources:
         #   - labels:
         #       "*": "*"

@@ -1,30 +1,12 @@
 ---
-- name: Fetch latest git tag from GitHub API
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/gravitational/teleport/releases/latest
-    method: GET
-    return_content: true
-    body_format: json
-    headers:
-      Accept: application/vnd.github+json
-  register: teleport_install_github_tags
-
-# - name: Debug
-#   ansible.builtin.debug:
-#     var: teleport_install_github_tags.json.tag_name
-
 - name: Create temp directory
   ansible.builtin.tempfile:
     state: directory
   register: teleport_install_tempdir
 
-# - name: Use temp directory
-#   ansible.builtin.debug:
-#     msg: "Created {{ teleport_install_tempdir.path }}"
-
 - name: Download and extract tarball from upstream Teleport URL
   ansible.builtin.unarchive:
-    src: "https://cdn.teleport.dev/teleport-update-{{ teleport_install_github_tags.json.tag_name }}-linux-amd64-bin.tar.gz" # TODO support different arch
+    src: "https://cdn.teleport.dev/teleport-update-v{{ teleport_version }}-linux-amd64-bin.tar.gz" # TODO support different arch
     dest: "{{ teleport_install_tempdir.path }}"
     remote_src: true
 

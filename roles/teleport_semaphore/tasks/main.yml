@@ -14,5 +14,5 @@
 
 - name: Set executor facts
   ansible.builtin.set_fact:
-    teleport_executor: "{{ teleport_semaphore_auth_host }}"
-    teleport_exec_prefix: "{{ teleport_semaphore_auth_host_type_map[teleport_semaphore_auth_host_type].tctl_exec_prefix }}"
+    teleport_semaphore_executor: "{{ teleport_semaphore_auth_host }}"
+    teleport_semaphore_exec_prefix: "{{ teleport_semaphore_auth_host_type_map[teleport_semaphore_auth_host_type].tctl_exec_prefix }}"

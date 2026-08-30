@@ -1,26 +1,26 @@
 ---
 - name: Stat the teleport token file
-  register: teleport_token_file
+  register: teleport_kubernetes_dynamic_token_file
   ansible.builtin.stat:
     path: /etc/teleport.token
 
 - name: If teleport token file does not exist
-  when: not teleport_token_file.stat.exists
+  when: not teleport_kubernetes_dynamic_token_file.stat.exists
   block:
     - name: Set random token value
       ansible.builtin.set_fact:
-        token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+        teleport_kubernetes_dynamic_token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
 
     - name: Issue kube token
       changed_when: true
       delegate_to: teleport
       ansible.builtin.command:
-        cmd: "tctl tokens add --type=kube,node,app,db,windowsdesktop,discovery --value {{ token }}"
+        cmd: "tctl tokens add --type=kube,node,app,db,windowsdesktop,discovery --value {{ teleport_kubernetes_dynamic_token }}"
 
     - name: Place token file
       ansible.builtin.copy:
         dest: /etc/teleport.token
-        content: "{{ token }}"
+        content: "{{ teleport_kubernetes_dynamic_token }}"
         mode: "0600"
         owner: root
         group: root
@@ -36,12 +36,12 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Stat kubeconfig
-  register: stat_kubeconfig
+  register: teleport_kubernetes_dynamic_stat_kubeconfig
   ansible.builtin.stat:
     path: /root/kubeconfig
 
 - name: If kubeconfig does not exist
-  when: not stat_kubeconfig.stat.exists
+  when: not teleport_kubernetes_dynamic_stat_kubeconfig.stat.exists
   block:
     - name: Get the kubeconfig script
       failed_when: false
@@ -64,7 +64,7 @@
         cmd: /root/get-kubeconfig.sh
 
 - name: Slurp kubeconfig
-  register: slurp_kubeconfig
+  register: teleport_kubernetes_dynamic_slurp_kubeconfig
   ansible.builtin.slurp:
     src: /root/kubeconfig
 
@@ -82,7 +82,7 @@
           metadata:
             name: {{ domain_name }}
           spec:
-            kubeconfig: {{ slurp_kubeconfig.content }}
+            kubeconfig: {{ teleport_kubernetes_dynamic_slurp_kubeconfig.content }}
 
     - name: Flush handlers
       ansible.builtin.meta: flush_handlers

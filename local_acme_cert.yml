@@ -12,9 +12,9 @@
       ansible.builtin.setup:
 
     - name: Install lego
-      become: "{{ ansible_distribution | string != 'MacOSX' }}" # Disable sudo for MacOSX
+      become: "{{ ansible_facts.distribution | string != 'MacOSX' }}" # Disable sudo for MacOSX
       ansible.builtin.package:
-        name: "{{ lego_package_os_map[ansible_distribution] }}"
+        name: "{{ lego_package_os_map[ansible_facts.distribution] }}"
 
     - name: Create cert dir
       ansible.builtin.file:

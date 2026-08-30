@@ -23,7 +23,7 @@ proxy_service:
   enabled: true
   web_listen_addr: 0.0.0.0:443
   peer_listen_addr: 0.0.0.0:3021
-  peer_public_addr: {{ ansible_default_ipv4.address }}:3021
+  peer_public_addr: {{ ansible_facts.default_ipv4.address }}:3021
   public_addr: {{ domain_name }}:443
   https_keypairs:
   - key_file: {{ lego_path }}/{{ domain_name }}.key

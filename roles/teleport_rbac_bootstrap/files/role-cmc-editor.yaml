@@ -5,6 +5,5 @@ metadata:
 spec:
   allow:
     rules:
-    - resources: ['cluster_maintenance_config']
-      verbs: ['create', 'read', 'update', 'delete']
-
+      - resources: ['cluster_maintenance_config']
+        verbs: ['create', 'read', 'update', 'delete']

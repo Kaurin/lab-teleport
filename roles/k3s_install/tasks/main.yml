@@ -1,10 +1,10 @@
 - name: Stat the k3s config file
-  register: k3s_config
+  register: k3s_install_k3s_config
   ansible.builtin.stat:
     path: /etc/rancher/k3s/k3s.yaml
 
 - name: If k3s config does not exist
-  when: not k3s_config.stat.exists
+  when: not k3s_install_k3s_config.stat.exists
   block:
     - name: Downloads the k3s install script
       ansible.builtin.get_url:
@@ -54,22 +54,22 @@
 - name: Check if helm exists
   failed_when: false
   changed_when: false
-  register: helm_exists
+  register: k3s_install_helm_exists
   ansible.builtin.command:
     cmd: which helm
 
 - name: Download the Helm install script
-  when: helm_exists.rc != 0
+  when: k3s_install_helm_exists.rc != 0
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     dest: /root/get_helm.sh
     mode: "0700"
 
 - name: Install Helm
-  when: helm_exists.rc != 0
+  when: k3s_install_helm_exists.rc != 0
   changed_when: true
-  register: install_helm
-  until: "install_helm is not failed"
+  register: k3s_install_install_helm
+  until: "k3s_install_install_helm is not failed"
   retries: 30
   delay: 0
   ansible.builtin.command:

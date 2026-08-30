@@ -4,27 +4,27 @@
     name: teleport_semaphore
 
 - name: Stat the teleport token file
-  register: teleport_token_file
+  register: teleport_ssh_agent_token_file
   ansible.builtin.stat:
     path: /etc/teleport.token
 
 - name: If teleport token file does not exist
-  when: not teleport_token_file.stat.exists
+  when: not teleport_ssh_agent_token_file.stat.exists
   block:
     - name: Set random token value
       ansible.builtin.set_fact:
-        token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+        teleport_ssh_agent_token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
 
     - name: Issue node token
       changed_when: true
-      delegate_to: "{{ teleport_executor }}"
+      delegate_to: "{{ teleport_semaphore_executor }}"
       ansible.builtin.command:
-        cmd: "{{ teleport_exec_prefix }} tctl tokens add --type=node,app,db,windowsdesktop,discovery --value {{ token }}"
+        cmd: "{{ teleport_semaphore_exec_prefix }} tctl tokens add --type=node,app,db,windowsdesktop,discovery --value {{ teleport_ssh_agent_token }}"
 
     - name: Place token file
       ansible.builtin.copy:
         dest: /etc/teleport.token
-        content: "{{ token }}"
+        content: "{{ teleport_ssh_agent_token }}"
         mode: "0600"
         owner: root
         group: root
@@ -42,5 +42,5 @@
             --output file:///etc/teleport.yaml
             --token /etc/teleport.token
             --proxy {{ domain_name }}:443
-            --labels hostname={{ ansible_hostname }}
+            --labels hostname={{ ansible_facts.hostname }}
             --labels commonkey=commonvalue

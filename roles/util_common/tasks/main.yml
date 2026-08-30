@@ -4,11 +4,11 @@
 
 - name: Wait 600 seconds for target connection to become reachable/usable
   ansible.builtin.wait_for_connection:
-    delay: "{{ conn_wait_first_run | default(true) | ternary(5, 0) }}" # Delay 5 seconds on first run, otherwise don't delay
+    delay: "{{ util_common_conn_wait_first_run | default(true) | ternary(5, 0) }}" # Delay 5 seconds on first run, otherwise don't delay
 
-- name: Set the conn_wait_first_run to false
+- name: Set the util_common_conn_wait_first_run to false
   ansible.builtin.set_fact:
-    conn_wait_first_run: false
+    util_common_conn_wait_first_run: false
 
 - name: Gather facts for first time
   retries: 300
@@ -18,16 +18,18 @@
 - name: Wait for cloud init to finish
   community.general.cloud_init_data_facts:
     filter: status
-  register: cloud_init_state
-  until: "cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and not cloud_init_state.cloud_init_data_facts.status.v1.stage"
+  register: util_common_cloud_init_state
+  until: >-
+    util_common_cloud_init_state.cloud_init_data_facts.status.v1.stage is defined and
+    not util_common_cloud_init_state.cloud_init_data_facts.status.v1.stage
   retries: 120
   delay: 0
 
 - name: Centos and Rocky PATH override block
   # For some reason those cloud distros don't have `/usr/local/bin` in the PATH....
   when: |
-    ansible_distribution == "CentOS"
-    or ansible_distribution == "Rocky"
+    ansible_facts.distribution == "CentOS"
+    or ansible_facts.distribution == "Rocky"
   block:
     - name: Add path to /etc/environment
       notify: Reset SSH Connection

@@ -1,7 +1,7 @@
 ---
 - name: Disable the tmpfs /tmp mount
   # We need to disable this on systems with small amounts of ram
-  # when: ansible_distribution == "Fedora" # And Ubuntu 26.04
+  # when: ansible_facts.distribution == "Fedora" # And Ubuntu 26.04
   retries: 10
   delay: 1
   failed_when: false # Some OSs don't have this and will fail
@@ -13,15 +13,15 @@
 - name: Check if teleport exists
   failed_when: false
   changed_when: false
-  register: teleport_exists
+  register: teleport_install_exists
   ansible.builtin.command:
     cmd: which teleport
 
 - name: If teleport not found
-  when: teleport_exists.rc != 0
+  when: teleport_install_exists.rc != 0
   block:
     - name: Stat teleport systemd service file
-      register: teleport_systemd_service_file
+      register: teleport_install_systemd_service_file
       ansible.builtin.stat:
         path: /etc/systemd/system/teleport.service
 
@@ -44,6 +44,6 @@
         file: install-updater.yml
 
     - name: Install the systemd file when needed
-      when: not teleport_systemd_service_file.stat.exists
+      when: not teleport_install_systemd_service_file.stat.exists
       changed_when: true
       ansible.builtin.command: teleport install systemd -o /etc/systemd/system/teleport.service

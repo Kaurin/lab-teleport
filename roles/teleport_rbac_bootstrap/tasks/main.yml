@@ -4,12 +4,12 @@
 
 - name: Set client tools auto-update
   changed_when: true
-  delegate_to: "{{ teleport_executor }}"
+  delegate_to: "{{ teleport_semaphore_executor }}"
   ansible.builtin.command:
-    cmd: "{{ teleport_exec_prefix }} tctl autoupdate client-tools enable"
+    cmd: "{{ teleport_semaphore_exec_prefix }} tctl autoupdate client-tools enable"
 
 - name: Run tctl operations anb/or kube CR ops
-  delegate_to: "{{ teleport_executor }}"
+  delegate_to: "{{ teleport_semaphore_executor }}"
   run_once: true
   block:
     - name: Include the kube or node specific tasks

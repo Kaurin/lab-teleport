@@ -3,7 +3,7 @@
     name: teleport_semaphore
 
 - name: Set up vnet
-  delegate_to: "{{ teleport_executor }}"
+  delegate_to: "{{ teleport_semaphore_executor }}"
   run_once: true
   block:
     - name: Create vnet config
@@ -24,7 +24,7 @@
     - name: Apply vnet
       changed_when: true
       ansible.builtin.shell:
-        cmd: "set -o pipefail && cat /root/vnet-config.yaml | {{ teleport_exec_prefix }} tctl create -f"
+        cmd: "set -o pipefail && cat /root/vnet-config.yaml | {{ teleport_semaphore_exec_prefix }} tctl create -f"
 
 ## Below block is for VM. TODO: Branch off for kube app
 - name: Install nginx

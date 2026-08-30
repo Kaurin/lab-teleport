@@ -13,7 +13,7 @@ Teleport deployments created with this repository are not meant for production u
 * Linux host which supports qemu virtualization through libvirt
 * Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available. KVM for Linux
 * Enough RAM to facilitate virtual machines TODO: how much ram?
-* Bridged network on the host with the bridge interface under the name `br0`
+* Bridge network interface on the workstation
 * Teleport Enterprise. `license.pem` should be placed in the root of this git repository
 * DNS and TLS:
   * If this is a public lab (accessible from the internet)

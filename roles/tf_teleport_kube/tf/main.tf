@@ -18,6 +18,11 @@ variable "login_username" {
   description = "Default login username for the guest virtual machines"
 }
 
+variable "bridge_interface" {
+  type        = string
+  description = "Bridge interface used for virt networking"
+}
+
 locals {
   user_data = {
     "packages" : ["python"]
@@ -45,7 +50,7 @@ module "teleport_lab" {
   cloud_image       = var.cloud_image
 
   libvirt_network_name = "teleport_network"
-  bridge_device        = "br0"
+  bridge_device        = var.bridge_interface
 
   lab_vms = [
     {

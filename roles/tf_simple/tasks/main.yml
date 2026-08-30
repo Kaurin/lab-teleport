@@ -9,5 +9,5 @@
       cloud_image: "{{ terraform_cloud_image }}"
       bridge_interface: "{{ terraform_bridge_interface }}"
       login_username: "{{ user_remote }}"
-      eth: "{{ eth }}"
+      eth: "{{ terraform_eth }}"
     force_init: true

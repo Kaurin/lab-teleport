@@ -43,7 +43,7 @@
       ansible.builtin.import_tasks:
         file: install-updater.yml
 
-    - name: Install the systemd file when needed
+    - name: Install the systemd file when needed # Enables and starts the service, too
       when: not teleport_install_systemd_service_file.stat.exists
       changed_when: true
       ansible.builtin.command: teleport install systemd -o /etc/systemd/system/teleport.service

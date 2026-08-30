@@ -1,18 +1,18 @@
 # Teleport Lab
 
-The purpose of this repository is to provide  the user with short lived Teleport deployment archetypes to test out various Teleport features.
+The purpose of this repository is to provide  the user with short-lived Teleport deployment archetypes to test out various Teleport features.
 
 This is achieved by utilizing libvirt/qemu together with Terraform to stand-up virtual machines, and ansible to provision them.
 
 Ansible roles contained here could (potentially) be used like lego pieces if you are to create your own Teleport deployment playbook. For reference, see this readme and playbooks starting with `main_*`
 
-Teleport deployments created with this repository are not meant for production use.
+Teleport deployments created with this repository are not meant for production use, nor prolonged dev use.
 
 # Prerequisites
 
 * Linux host which supports qemu virtualization through libvirt
-* Enough RAM to facilitate virtual machines TODO: how much ram?
 * Host must have libvirt and one of its [virtualization drivers](https://libvirt.org/formatdomain.html#element-and-attribute-overview) available. KVM for Linux
+* Enough RAM to facilitate virtual machines TODO: how much ram?
 * Bridged network on the host with the bridge interface under the name `br0`
 * Teleport Enterprise. `license.pem` should be placed in the root of this git repository
 * DNS and TLS:
@@ -23,9 +23,9 @@ Teleport deployments created with this repository are not meant for production u
     * You will need your own hosted domain
     * Use one of the [lego supported](https://go-acme.github.io/lego/dns/) DNS providers. CloudFlare example is in `inventory/hosts.yml`
       * DNS one of:
-        * Privately hosted so it intercepts/rewrites `*.yourdomain.com` to `10.84.110.160`
+        * Privately hosted so it intercepts/rewrites `*.yourdomain.com` and `yourdomain.com` to `10.84.110.160`
         * Publicly hosted where it resolves `*.yourdomain.com` and `yourdomain.com` to `10.84.110.160`
-        * Hosts file manipulation (No plans to implement- it would require deploying the hosts file on all deployed components and the workstation)
+        * Not supported: /etc/hosts file manipulation
 * Some terraform knowledge is required
 * Some ansible knowledge is required
 * General Linux system administrator knowledge
@@ -35,12 +35,6 @@ Teleport deployments created with this repository are not meant for production u
 # Usage instructions
 
 ## One time setup
-
-### Download a Cloud image 
-
-First, check which distribution/versions are supported [here](https://goteleport.com/docs/installation/)
-
-Then download a QEMU/UEFI cloud image. For example Ubuntu Focal (22.04 LTS) can be found as `focal-server-cloudimg-amd64.img` [here](https://cloud-images.ubuntu.com/focal/current/)
 
 ### Generate an SSH key for Ansible
 
@@ -85,7 +79,11 @@ If your workstation sudo requires password
 uv run ansible-playbook local_acme_cert.yml -vv --ask-become-pass
 ```
 
-Note: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token. Renewals are handled in the main playbook.
+Note: Because this playbook stores your certs locally, you won't need to run it again unless you start using a different domain or token.
+
+Note: Renewals are handled through invoking playbooks which bring up Teleport.
+
+Note: One of the reasons this repo is meant for short-lived throwaway environments is that we don't renew the certs on the deployed hosts. They are only renewed at cluster standup via playbooks.
 
 ## Iterate using Teleport deployment archetypes
 
@@ -96,6 +94,10 @@ Here are some of the archetypes:
 ### simple.yml
 
 Teleport cluster on a single VM and 4 SSH nodes:
+ * Auth and Proxy on a single VM
+ * SQLite (local) core cluster state backend
+ * Audit events are local dir
+ * Session recordings are local dir
  * 2 agentless
  * 2 joined via agent
 
@@ -117,10 +119,9 @@ Provisions a leaf cluster on `teleport-node-agentless-1`. Depending on your setu
 ### kubernetes_dynamic.yml
 
 Deploys the following:
-* Teleport cluster on a single VM,
 * k3s VM:
-  * The Teleport agent is *not* deployed onto the k3s cluster
-  * The Teleport agent resides in parallel with the k3s cluster on the same VM
+  * `teleport-cluster` and `teleport-kube-agent` helm charts are *not* deployed onto the k3s single-node cluster
+  * The Teleport agent (systemd) resides in parallel with the k3s cluster on the same VM as k3s
   * Joined to the Teleport cluster with type "kube"
 * Follows (loosely) this teleport document: [Dynamic Kubernetes Cluster Registration](https://goteleport.com/docs/enroll-resources/kubernetes-access/register-clusters/dynamic-registration/) - TODO: make the playbook match the document closer
 
@@ -161,4 +162,3 @@ uv run ansible-playbook main_kube_helm.yml -vv -e terraform_destroy=true
 Used to set a few helper variables for roles such as `teleport_ssh_agent`, `teleport_ssh_agentless` and `teleport_rbac_bootstrap`.
 
 Included at the very beginning of those roles to ensure semaphore variables are set, such as what type of Teleport deployment is in question (`kube` vs `node`) and on which node is Teleport-cluster installed.
-A lot of roles make use of this helper role.

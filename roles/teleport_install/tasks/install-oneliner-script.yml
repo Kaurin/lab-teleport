@@ -1,7 +1,7 @@
 # TODO
 # - name: Rhel activation
 #   changed_when: true
-#   when: ansible_distribution == "RedHat"
+#   when: ansible_facts.distribution == "RedHat"
 #   ansible.builtin.command:
 #     cmd: rhc connect --organization <your-org> --activation-key <activation-key>
 
@@ -20,8 +20,8 @@
 
 - name: Install teleport
   changed_when: true
-  register: teleport_install
-  until: teleport_install is not failed
+  register: teleport_install_result
+  until: teleport_install_result is not failed
   retries: 10 # Even if we wait for cloud-init to finish, apt sometimes runs in the background
   delay: 1
   ansible.builtin.shell:

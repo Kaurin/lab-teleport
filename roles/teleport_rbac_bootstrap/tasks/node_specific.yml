@@ -29,7 +29,7 @@
 - name: Check if admin user needs to be reset (before creating it)
   changed_when: false
   failed_when: false
-  register: tctl_get_admin_user
+  register: teleport_rbac_bootstrap_tctl_get_admin_user
   ansible.builtin.command:
     cmd: "tctl get user/teleport-admin"
 
@@ -47,7 +47,7 @@
     cmd: "tctl create -f /root/teleport-objects/{{ item }}"
 
 - name: Reset admin user
-  when: tctl_get_admin_user.rc != 0
+  when: teleport_rbac_bootstrap_tctl_get_admin_user.rc != 0
   changed_when: true
   ansible.builtin.command:
     cmd: "tctl users reset teleport-admin"

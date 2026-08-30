@@ -5,30 +5,29 @@
 
 - name: Check if we already signed the node
   delegate_to: teleport
-  register: auth_signed_file
+  register: teleport_ssh_agentless_auth_signed_file
   ansible.builtin.stat:
-    path: "/root/{{ ansible_hostname }}-ident"
+    path: "/root/{{ ansible_facts.hostname }}-ident"
 
 - name: Wait for Teleport to become ready
   ansible.builtin.include_role:
     name: util_wait_teleport_ready
 
 - name: Tasks if node nod signed previously
-  when: not auth_signed_file.stat.exists
+  when: not teleport_ssh_agentless_auth_signed_file.stat.exists
   block:
-
     # Don't merge this block with the previous `block`. We need to step out back to the previous `block` later
     - name: Block for items needed to be performed on the cluster
-      delegate_to: "{{ teleport_executor }}"
+      delegate_to: "{{ teleport_semaphore_executor }}"
       block:
         - name: Set random name value
           ansible.builtin.set_fact:
-            agentless_name_uuid: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid | lower }}"
+            teleport_ssh_agentless_name_uuid: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid | lower }}"
 
         - name: Template out the agentless node object
           ansible.builtin.template:
             src: node_agentless.yaml.j2
-            dest: "/root/{{ ansible_hostname }}.yaml"
+            dest: "/root/{{ ansible_facts.hostname }}.yaml"
             mode: "0600"
             owner: root
 
@@ -38,47 +37,46 @@
 
         - name: Slurp the Key
           no_log: true
-          register: agentless_slurped_key
+          register: teleport_ssh_agentless_slurped_key
           ansible.builtin.slurp:
-            src: "/root/{{ ansible_hostname }}-ident"
+            src: "/root/{{ ansible_facts.hostname }}-ident"
 
         - name: Slurp the Cert
           no_log: true
-          register: agentless_slurped_cert
+          register: teleport_ssh_agentless_slurped_cert
           ansible.builtin.slurp:
-            src: "/root/{{ ansible_hostname }}-ident-cert.pub"
-
+            src: "/root/{{ ansible_facts.hostname }}-ident-cert.pub"
 
     # Stepping back to the agentless host
     - name: Place the key
       no_log: true
       ansible.builtin.copy:
-        dest: "/etc/ssh/{{ ansible_hostname }}-ident"
+        dest: "/etc/ssh/{{ ansible_facts.hostname }}-ident"
         mode: "0600"
         owner: root
-        content: "{{ agentless_slurped_key.content | b64decode }}"
+        content: "{{ teleport_ssh_agentless_slurped_key.content | b64decode }}"
 
     - name: Place the cert
       no_log: true
       ansible.builtin.copy:
-        dest: "/etc/ssh/{{ ansible_hostname }}-ident-cert.pub"
+        dest: "/etc/ssh/{{ ansible_facts.hostname }}-ident-cert.pub"
         mode: "0600"
         owner: root
-        content: "{{ agentless_slurped_cert.content | b64decode }}"
+        content: "{{ teleport_ssh_agentless_slurped_cert.content | b64decode }}"
 
     - name: Modify the SSH config to include the auth signed HostKey
       notify: Restart SSH daemon # Requires util_common
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
-        regexp: '^HostKey'
-        line: "HostKey /etc/ssh/{{ ansible_hostname }}-ident"
+        regexp: "^HostKey"
+        line: "HostKey /etc/ssh/{{ ansible_facts.hostname }}-ident"
 
     - name: Modify the SSH config to include the auth signed HostCertificate
       notify: Restart SSH daemon # Requires util_common
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
-        regexp: '^HostCertificate'
-        line: "HostCertificate /etc/ssh/{{ ansible_hostname }}-ident-cert.pub"
+        regexp: "^HostCertificate"
+        line: "HostCertificate /etc/ssh/{{ ansible_facts.hostname }}-ident-cert.pub"
 
     - name: Get the SSH CA from our cluster
       ansible.builtin.copy:

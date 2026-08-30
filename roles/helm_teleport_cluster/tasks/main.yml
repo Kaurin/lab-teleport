@@ -25,7 +25,7 @@
 - name: Slurp the cert/key and license files
   delegate_to: 127.0.0.1
   become: false
-  register: slurped_files
+  register: helm_teleport_cluster_slurped_files
   vars:
     lego_file_mapping:
       - local_file: "{{ lego_path_local }}/certificates/_.{{ domain_name }}.crt"

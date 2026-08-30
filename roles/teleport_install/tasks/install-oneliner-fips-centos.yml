@@ -4,8 +4,9 @@
 
 - name: Get url
   ansible.builtin.get_url:
-    url: "https://yum.releases.teleport.dev/{{ os_release_id }}/{{ ansible_distribution_major_version }}/\
-      Teleport/{{ ansible_architecture }}/{{ teleport_channel }}/teleport.repo"
+    url:
+      "https://yum.releases.teleport.dev/{{ teleport_install_os_release_id }}/{{ ansible_facts.distribution_major_version }}/\
+      Teleport/{{ ansible_architecture }}/{{ teleport_install_channel }}/teleport.repo"
     dest: /etc/yum.repos.d/teleport.repo
     mode: "0644"
 

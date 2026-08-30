@@ -1,6 +1,6 @@
 [project]
 name = "lab-teleport"
-version = "0.1.0"
+version = "0.1.1"
 requires-python = ">=3.13"
 # Check latest ansible version: https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html
 dependencies = ["ansible<14", "cryptography", "jmespath", "kubernetes"]

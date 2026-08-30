@@ -11,7 +11,7 @@ spec:
     type: static_jwks
     static_jwks:
       jwks: |
-        {{ jwks.stdout }}
+        {{ helm_teleport_kube_agent_jwks.stdout }}
     # allow specifies the rules by which the Auth Server determines if the node
     # should be allowed to join.
     allow:

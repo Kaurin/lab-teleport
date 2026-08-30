@@ -2,22 +2,22 @@
 - name: Check if helm exists
   failed_when: false
   changed_when: false
-  register: helm_exists
+  register: helm_teleport_kube_agent_helm_exists
   ansible.builtin.command:
     cmd: which helm
 
 - name: Download the Helm install script
-  when: helm_exists.rc != 0
+  when: helm_teleport_kube_agent_helm_exists.rc != 0
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     dest: /root/get_helm.sh
     mode: "0700"
 
 - name: Install Helm
-  when: helm_exists.rc != 0
+  when: helm_teleport_kube_agent_helm_exists.rc != 0
   changed_when: true
-  register: install_helm
-  until: "install_helm is not failed"
+  register: helm_teleport_kube_agent_install_helm
+  until: "helm_teleport_kube_agent_install_helm is not failed"
   retries: 30
   delay: 0
   ansible.builtin.command:
@@ -25,7 +25,7 @@
 
 - name: Grab the JWKS
   changed_when: false
-  register: jwks
+  register: helm_teleport_kube_agent_jwks
   ansible.builtin.command:
     cmd: kubectl get --raw /openid/v1/jwks
 

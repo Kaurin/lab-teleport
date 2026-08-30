@@ -10,6 +10,6 @@
 
 - name: Restart SSH daemon
   ansible.builtin.systemd:
-    name: "{{ ssh_name_map[ansible_os_family] }}"
+    name: "{{ ssh_name_map[ansible_facts.os_family] }}"
     state: restarted
     enabled: true

@@ -3,11 +3,11 @@
     state: absent
     name:
       - teleport
-      - "{{ teleport_fips | ternary('teleport-ent-fips','teleport-ent') }}"
+      - "{{ teleport_fips | ternary('teleport-ent-fips', 'teleport-ent') }}"
 
 # Only needed for kube deployments. Bot is not used on node deployments.
 - name: Remove the MachineID bot
-  delegate_to: "{{ teleport_executor }}"
+  delegate_to: "{{ teleport_semaphore_executor }}"
   run_once: true
   when: auth_pods is defined
   kubernetes.core.k8s_exec:

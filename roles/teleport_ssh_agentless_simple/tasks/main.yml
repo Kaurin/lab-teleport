@@ -1,29 +1,29 @@
 ---
 # TODO should also support semaphore like the teleport_ssh_agentless role
 - name: Stat the teleport token file
-  register: teleport_token_file
+  register: teleport_ssh_agentless_simple_token_file
   ansible.builtin.stat:
     path: /etc/teleport.token
 
 - name: If teleport token file does not exist
   when:
-    - not teleport_token_file.stat.exists
+    - not teleport_ssh_agentless_simple_token_file.stat.exists
     - "'nodes_ssh_agentless' in group_names"
   block:
     - name: Set random token value
       ansible.builtin.set_fact:
-        token_agentless: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
+        teleport_ssh_agentless_simple_token: "{{ 999999999999999999999999999999999999999999999999999999999999999999 | random | to_uuid }}"
 
     - name: Issue node token
       changed_when: true
       delegate_to: teleport
       ansible.builtin.command:
-        cmd: "tctl tokens add --type=node,app,db,windowsdesktop,discovery --value {{ token_agentless }}"
+        cmd: "tctl tokens add --type=node,app,db,windowsdesktop,discovery --value {{ teleport_ssh_agentless_simple_token }}"
 
     - name: Place token file
       ansible.builtin.copy:
         dest: /etc/teleport.token
-        content: "{{ token_agentless }}"
+        content: "{{ teleport_ssh_agentless_simple_token }}"
         mode: "0600"
         owner: root
         group: root
@@ -37,6 +37,6 @@
             --address {{ ansible_default_ipv4.address }}:22
             --proxy-server {{ domain_name }}:443
             --join-method token
-            --token {{ token_agentless }}
-            --labels hostname={{ ansible_hostname }}
+            --token {{ teleport_ssh_agentless_simple_token }}
+            --labels hostname={{ ansible_facts.hostname }}
             --labels commonkey=commonvalue

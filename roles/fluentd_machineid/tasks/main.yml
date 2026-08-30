@@ -1,6 +1,6 @@
 - name: Add example bot
   changed_when: true
-  register: command_add_bot
+  register: fluentd_machineid_command_add_bot
   ansible.builtin.command:
     cmd: tctl bots add example
 

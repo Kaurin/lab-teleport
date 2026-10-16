@@ -52,7 +52,7 @@
         #       "*": "*"
         apps:
           - name: "nginx-{{ inventory_hostname }}"
-            uri: "tcp://localhost:80"
+            uri: "http://localhost:80"
             labels:
               env: "prod"
           - name: "nginx-vnet-{{ inventory_hostname }}"
